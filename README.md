@@ -1,10 +1,10 @@
-<img src="https://ipmdecisions.net/media/phdj3qhd/output-onlinepngtools.png" width="200px;"/>
+<img src="https://madiphs.org/wp-content/uploads/2023/01/MaDiPHS-Ikon-RGB-75.png" />
 
-# IPM Decisions Weather Service
-This service is part of the <a href="https://ipmdecisions.net/" target="new">Horizon 2020 IPM Decisions project</a>.
+# MaDiPHS Weather Service
+This service is part of the <a href="https://madiphs.org/" target="_blank">MaDiPHS project</a>.
 The service provides the system with sufficient information for a client to be able to connect to and get information from any weather data source. 
 
-The source code for this service can be found here: <a href="https://github.com/H2020-IPM-Decisions/WeatherService" target="new">https://github.com/H2020-IPM-Decisions/WeatherService</a>
+The source code for this service can be found here: <a href="https://github.com/MaDiPHS/WeatherService" target="_blank">https://github.com/MaDiPHS/WeatherService</a>
 
 There are three main components of the service:
 
