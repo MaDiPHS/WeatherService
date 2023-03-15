@@ -1515,17 +1515,92 @@ datasources:
 
     parameters:
       common:
-       - 1001 # Instantaneous temperature at 2m (Celcius)
-       - 3001 # Instantaneous RH at 2m (%)
-       - 2001 # Precipitation (mm)
-       - 4002 # Instantaneous wind speed at 2m
-  - 
+        - 1001 # Instantaneous temperature at 2m (Celcius)
+        - 3001 # Instantaneous RH at 2m (%)
+        - 2001 # Precipitation (mm)
+        - 4002 # Instantaneous wind speed at 2m
+  -
+    id: com.tahmo
+    name: Tahmo API
+    description: TODO
+    public_URL: https://todo.com
+    priority: 10 # From 0 (lowest) - 10 (highest) When more than one datasource relevant, use this value for prioritization
+    organization:
+      name: TODO
+      country: TODO
+      address: TODO
+      postal_code: "9009"
+      city: TODO
+      email: TODO
+      url: TODO
+    endpoint: "{WEATHER_API_URL}/rest/weatheradapter/tahmo/"
+    authentication_type: CREDENTIALS # This implies http POST and sending parameters x-www-form-urlencoded, adding parameter credentials={"username":"XXX", "password":"XXX"}
+    needs_data_control: true
+    temporal:
+      historic: #
+        start: 2020-01-01 # Start == null => No measured/historic/observational data
+        end: null #null => Recent data available (continuously updated) UNLESS OF COURSE start == null
+      forecast: 0 # 0 = no forecast. All other positive integers indicate the number of days ahead
+      intervals: # Array of accepted interval requests
+        - 3600
+    access_type: stations
+    spatial:
+      # Using country codes to get GeoJSON. Saves a lot of duplication.
+      # ISO-3166-1 Three-letter country codes https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
+      # e.g.
+      # - NOR
+      # - SWE
+      countries: null
+      # "Sphere" simply means the whole globe (NOT part of GEOJson spec!)
+      geoJSON: |-
+        {
+          "type": "FeatureCollection", 
+          "features": [
+             {"type": "Feature", "id": "TA00321", "geometry": {"type": "Point", "coordinates": [-15.903429, 35.21617]}, "properties": {"name": "MUST"}},
+             {"type": "Feature", "id": "TA00322", "geometry": {"type": "Point", "coordinates": [-15.447727, 34.85131]}, "properties": {"name": "Lisungwi EPA"}},
+             {"type": "Feature", "id": "TA00323", "geometry": {"type": "Point", "coordinates": [-15.670962, 34.87006]}, "properties": {"name": "Kunthembwe EPA"}},
+             {"type": "Feature", "id": "TA00324", "geometry": {"type": "Point", "coordinates": [-15.758669, 35.28069]}, "properties": {"name": "Mombezi Agriculture"}},
+             {"type": "Feature", "id": "TA00325", "geometry": {"type": "Point", "coordinates": [-15.488575, 34.97091]}, "properties": {"name": "Namikasi"}},
+             {"type": "Feature", "id": "TA00327", "geometry": {"type": "Point", "coordinates": [-16.583949, 35.1033]}, "properties": {"name": "Bagnula"}},
+             {"type": "Feature", "id": "TA00329", "geometry": {"type": "Point", "coordinates": [-15.916054, 35.35609]}, "properties": {"name": "Thuchila Agriculture"}},
+             {"type": "Feature", "id": "TA00330", "geometry": {"type": "Point", "coordinates": [-15.75662, 35.24139]}, "properties": {"name": "Thumbwe Agriculture"}},
+             {"type": "Feature", "id": "TA00331", "geometry": {"type": "Point", "coordinates": [-15.763918, 35.043804]}, "properties": {"name": "Ndirande Secondary School"}},
+             {"type": "Feature", "id": "TA00332", "geometry": {"type": "Point", "coordinates": [-15.689893, 35.320676]}, "properties": {"name": "Milepa Agriculture"}},
+             {"type": "Feature", "id": "TA00351", "geometry": {"type": "Point", "coordinates": [-14.71191, 34.9765]}, "properties": {"name": "Chilipå Agriculture"}},
+             {"type": "Feature", "id": "TA00353", "geometry": {"type": "Point", "coordinates": [-14.166357, 34.115317]}, "properties": {"name": "Linthipe Agriculture"}},
+             {"type": "Feature", "id": "TA00361", "geometry": {"type": "Point", "coordinates": [-10.948273, 33.579343]}, "properties": {"name": "Mwazisi"}},
+             {"type": "Feature", "id": "TA00362", "geometry": {"type": "Point", "coordinates": [-12.244702, 33.996286]}, "properties": {"name": "Dwambazi Agriculture"}},
+             {"type": "Feature", "id": "TA00363", "geometry": {"type": "Point", "coordinates": [-9.593626, 33.773147]}, "properties": {"name": "Songwe Water Board"}},
+             {"type": "Feature", "id": "TA00367", "geometry": {"type": "Point", "coordinates": [-11.286344, 33.604265]}, "properties": {"name": "Mpherembe Agriculture"}},
+             {"type": "Feature", "id": "TA00368", "geometry": {"type": "Point", "coordinates": [-11.425561, 34.046081]}, "properties": {"name": "Lunyangwa Research Station"}},
+             {"type": "Feature", "id": "TA00369", "geometry": {"type": "Point", "coordinates": [-11.4542682, 33.4266215]}, "properties": {"name": "Euthini Agriculture"}},
+             {"type": "Feature", "id": "TA00375", "geometry": {"type": "Point", "coordinates": [-13.032491, 33.685373]}, "properties": {"name": "Kamuzu Academy"}},
+             {"type": "Feature", "id": "TA00376", "geometry": {"type": "Point", "coordinates": [-12.33256, 33.598781]}, "properties": {"name": "Champhira Agriculture"}},
+             {"type": "Feature", "id": "TA00390", "geometry": {"type": "Point", "coordinates": [-13.673076, 34.585986]}, "properties": {"name": "Lifuwu Research"}},
+             {"type": "Feature", "id": "TA00601", "geometry": {"type": "Point", "coordinates": [-14.080148, 33.907593]}, "properties": {"name": "Nathenje"}},
+             {"type": "Feature", "id": "TA00602", "geometry": {"type": "Point", "coordinates": [-14.594091, 34.614791]}, "properties": {"name": "Kandeu"}},
+             {"type": "Feature", "id": "TA00636", "geometry": {"type": "Point", "coordinates": [-13.799338, 32.883259]}, "properties": {"name": "Mchinji EPA"}},
+             {"type": "Feature", "id": "TA00637", "geometry": {"type": "Point", "coordinates": [-14.206029, 33.591361]}, "properties": {"name": "Katete Forest"}},
+             {"type": "Feature", "id": "TA00638", "geometry": {"type": "Point", "coordinates": [-13.170715, 33.509056]}, "properties": {"name": "Lisasadzi"}},
+             {"type": "Feature", "id": "TA00639", "geometry": {"type": "Point", "coordinates": [-13.98426896, 34.492238]}, "properties": {"name": "Chipoka Seconday School"}},
+             {"type": "Feature", "id": "TA00640", "geometry": {"type": "Point", "coordinates": [-14.045407, 35.353814]}, "properties": {"name": "Ngapani"}},
+             {"type": "Feature", "id": "TA00641", "geometry": {"type": "Point", "coordinates": [-14.021556, 33.388663]}, "properties": {"name": "Chileka"}},
+             {"type": "Feature", "id": "TA00642", "geometry": {"type": "Point", "coordinates": [-15.215661, 34.886808]}, "properties": {"name": "Phalula"}}
+        ]
+        }
+    parameters:
+      common:
+        - 1001 # Instantaneous temperature at 2m (Celcius)
+        - 3001 # Instantaneous RH at 2m (%)
+        - 2001 # Precipitation (mm)
+        - 4002 # Instantaneous wind speed at 2m
+  -
     id: info.fruitweb
     name: Fruitweb
     description: Network of privately owned weather stations of several types; Davis, Metos and self manufactured. Access requires permission from each weather station's owner
     public_URL: https://fruitweb.info
     priority: 10 # From 0 (lowest) - 10 (highest) When more than one datasource relevant, use this value for prioritization
-    organization: 
+    organization:
       name: fruitweb GmbH
       country: Germany
       address: Groß Hove 100
@@ -1537,7 +1612,7 @@ datasources:
     authentication_type: CREDENTIALS # This implies http POST and sending parameters x-www-form-urlencoded, adding parameter credentials={"username":"XXX", "password":"XXX"}
     needs_data_control: true
     temporal:
-      historic: #  
+      historic: #
         start: 2020-01-01 # Start == null => No measured/historic/observational data
         end: null #null => Recent data available (continuously updated) UNLESS OF COURSE start == null
       forecast: 0 # 0 = no forecast. All other positive integers indicate the number of days ahead
