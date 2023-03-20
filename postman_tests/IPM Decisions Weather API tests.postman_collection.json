@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "3febfc92-66df-4e6f-9626-609621038503",
+		"_postman_id": "45511d69-2432-460f-8c9f-4481a4d8fa17",
 		"name": "IPM Decisions Weather API tests",
 		"description": "This is the test suite for the IPM Decisions Weather API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "5789128"
+		"_exporter_id": "3222856"
 	},
 	"item": [
 		{
@@ -453,6 +453,85 @@
 									"value": "{\"username\":\"3138313530303239\",\"password\":\"Y3Nw_48aNe4y1Z0Wj\"}",
 									"disabled": true
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tahmo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"        pm.test(\"Data is valid WeatherData\", function(){",
+									"        var schema = res.json();",
+									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "weatherStationId",
+									"value": "TA00321",
+									"type": "text"
+								},
+								{
+									"key": "interval",
+									"value": "3600",
+									"type": "text"
+								},
+								{
+									"key": "ignoreErrors",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "timeStart",
+									"value": "2021-01-01T00:00:00+03:00",
+									"type": "text"
+								},
+								{
+									"key": "timeEnd",
+									"value": "2021-01-01T23:59:59+03:00",
+									"type": "text"
+								},
+								{
+									"key": "parameters",
+									"value": "2001,1002,5001,4003",
+									"type": "text"
+								},
+								{
+									"key": "credentials",
+									"value": "{\"userName\":\"{{tahmo_user}}\",\"password\":\"{{tahmo_pwd}}\"}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{wx_url}}/rest/weatheradapter/tahmo",
+							"host": [
+								"{{wx_url}}"
+							],
+							"path": [
+								"rest",
+								"weatheradapter",
+								"tahmo"
 							]
 						}
 					},
@@ -2174,6 +2253,14 @@
 		{
 			"key": "base_url",
 			"value": "localhost:8080/VIPSWeatherService"
+		},
+		{
+			"key": "tahmo_user",
+			"value": ""
+		},
+		{
+			"key": "tahmo_pwd",
+			"value": ""
 		}
 	]
 }

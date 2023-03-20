@@ -24,10 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Date;
 import java.util.stream.Collectors;
+import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -45,24 +43,25 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import net.ipmdecisions.weather.datasourceadapters.DavisFruitwebAdapter;
-import net.ipmdecisions.weather.datasourceadapters.MetIrelandWeatherForecastAdapter;
-import net.ipmdecisions.weather.datasourceadapters.MeteobotAPIAdapter;
-import net.ipmdecisions.weather.datasourceadapters.MetosAPIAdapter;
-import net.ipmdecisions.weather.datasourceadapters.ParseWeatherDataException;
-import net.ipmdecisions.weather.datasourceadapters.SLULantMetAdapter;
-import net.ipmdecisions.weather.datasourceadapters.YrWeatherForecastAdapter;
+
+import net.ipmdecisions.weather.controller.WeatherDataSourceBean;
+import net.ipmdecisions.weather.datasourceadapters.*;
 import net.ipmdecisions.weather.datasourceadapters.finnishmeteorologicalinstitute.FinnishMeteorologicalInstituteAdapter;
 import net.ipmdecisions.weather.entity.WeatherData;
+import net.ipmdecisions.weather.entity.WeatherDataSource;
 import net.ipmdecisions.weather.entity.WeatherDataSourceException;
 import net.ipmdecisions.weather.util.WeatherDataUtil;
 import org.jboss.resteasy.annotations.GZIP;
+import org.locationtech.jts.geom.Coordinate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Stream;
 import javax.xml.datatype.DatatypeConfigurationException;
 import net.ipmdecisions.weather.datasourceadapters.dmi.DMIPointWebDataParser;
+import org.wololo.geojson.Feature;
+import org.wololo.jts2geojson.GeoJSONReader;
 
 /**
  * Some weather data sources may agree to deliver their weather data in the 
@@ -77,10 +76,16 @@ import net.ipmdecisions.weather.datasourceadapters.dmi.DMIPointWebDataParser;
  */
 @Path("rest/weatheradapter")
 public class WeatherAdapterService {
-	
-	private static Logger LOGGER = LoggerFactory.getLogger(WeatherAdapterService.class);
-    
+
+    private static Logger LOGGER = LoggerFactory.getLogger(WeatherAdapterService.class);
+
+    private static final String PARAM_USER_NAME = "userName";
+    private static final String PARAM_PASSWORD = "password";
+
     private WeatherDataUtil weatherDataUtil;
+
+    @EJB
+    private WeatherDataSourceBean weatherDataSourceBean;
     
     /**
      * Get 9 day weather forecasts from <a href="https://www.met.no/en" target="new">The Norwegian Meteorological Institute</a>'s 
@@ -497,8 +502,8 @@ public class WeatherAdapterService {
         try
         {
             JsonNode json = new ObjectMapper().readTree(credentials);
-            String userName = json.get("userName").asText();
-            String password = json.get("password").asText();
+            String userName = json.get(PARAM_USER_NAME).asText();
+            String password = json.get(PARAM_PASSWORD).asText();
 
             Set<Integer> ipmDecisionsParameters = new HashSet(Arrays.asList(parameters.split(",")).stream()
                         .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
@@ -516,7 +521,97 @@ public class WeatherAdapterService {
             return Response.serverError().entity(ex).build();
         }
     }
-    
+
+    /**
+     * Get weather observations in the IPM Decision's weather data format from the network of Tahmo stations.
+     *
+     * @param stationCode  The weather station id
+     * @param timeStart    Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00)
+     * @param timeEnd      End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00)
+     * @param logInterval  The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly)
+     * @param parameters   Comma separated list of the requested weather parameters, given by <a href="/rest/parameter" target="new">their codes</a>
+     * @param ignoreErrors Set to "true" if you want the service to return weather data regardless of there being errors in the service. Currently not in use.
+     * @param credentials  json object with "userName" and "password" properties set
+     * @return weather data for the requested weather station and time period
+     * @requestExample application/x-www-form-urlencoded
+     * weatherStationId:TA00321
+     * interval:3600
+     * ignoreErrors:true
+     * timeStart:2021-01-01T00:00:00+03:00
+     * timeEnd:2021-01-06T23:59:59+03:00
+     * parameters:1002,3002,2001
+     * credentials:{"userName":"X","password":"Y"}
+     */
+    @POST
+    @Path("tahmo/")
+    @GZIP
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTahmoObservations(
+            @FormParam("weatherStationId") String stationCode,
+            @FormParam("timeStart") String timeStart,
+            @FormParam("timeEnd") String timeEnd,
+            @FormParam("interval") Integer logInterval,
+            @FormParam("parameters") String parameters,
+            @FormParam("ignoreErrors") String ignoreErrors,
+            @FormParam("credentials") String credentials
+    ) {
+        LOGGER.debug("Request Tahmo observations for weather station {}", stationCode);
+
+        if (!logInterval.equals(3600)) {
+            return Response.status(Status.BAD_REQUEST).entity("This service only provides hourly data").build();
+        }
+
+        String userName, password;
+        try {
+            JsonNode node = new ObjectMapper().readTree(credentials);
+            userName = node.get(PARAM_USER_NAME).asText();
+            password = node.get(PARAM_PASSWORD).asText();
+        } catch (JsonProcessingException jpe) {
+            LOGGER.error("Unable to parse credentials", jpe);
+            return Response.status(Status.BAD_REQUEST).entity("Unable to parse credentials").build();
+        }
+
+        String wds = "com.tahmo";
+        WeatherDataSource weatherDataSource;
+        try {
+            weatherDataSource = weatherDataSourceBean.getWeatherDataSourceById(wds);
+        } catch (IOException e) {
+            LOGGER.error("Unable to find weather data source {}", wds, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("Unable to find weather data source").build();
+        }
+        GeoJSONReader reader = new GeoJSONReader();
+        Feature station = weatherDataSource.getStation(stationCode);
+        Coordinate coordinate = reader.read(station.getGeometry()).getCoordinate();
+
+        Set<Integer> intParamSet = Stream.of(parameters.split(","))
+                .map(String::trim)
+                .map(Integer::parseInt)
+                .collect(Collectors.toSet());
+
+        ZonedDateTime startDate = ZonedDateTime.parse(timeStart);
+        ZonedDateTime endDate = ZonedDateTime.parse(timeEnd);
+
+        // TODO This parameter is never used
+        Boolean ignoreErrorsB = ignoreErrors != null && ignoreErrors.equals("true");
+
+        try {
+            TahmoAdapter.TahmoConnection tahmoConnection = new TahmoAdapter.TahmoConnection();
+            return Response.ok().entity(new TahmoAdapter(tahmoConnection).getWeatherData(
+                    stationCode,
+                    coordinate.x,
+                    coordinate.y,
+                    userName,
+                    password,
+                    startDate,
+                    endDate,
+                    intParamSet
+            )).build();
+        } catch (ParseWeatherDataException e) {
+            return Response.serverError().entity(e).build();
+        }
+    }
+
     /**
      * Get weather observations in the IPM Decision's weather data format from the the network of Pessl Instruments Metos stations 
      * [https://metos.at/]
@@ -564,8 +659,8 @@ public class WeatherAdapterService {
         try
         {
             JsonNode json = new ObjectMapper().readTree(credentials);
-            String publicKey = json.get("userName").asText();
-            String privateKey = json.get("password").asText();
+            String publicKey = json.get(PARAM_USER_NAME).asText();
+            String privateKey = json.get(PARAM_PASSWORD).asText();
 
             Set<Integer> ipmDecisionsParameters = new HashSet(Arrays.asList(parameters.split(",")).stream()
                         .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
@@ -638,8 +733,8 @@ public class WeatherAdapterService {
         try
         {
             JsonNode json = new ObjectMapper().readTree(credentials);
-            String userName = json.get("userName").asText();
-            String password = json.get("password").asText();
+            String userName = json.get(PARAM_USER_NAME).asText();
+            String password = json.get(PARAM_PASSWORD).asText();
 
             Set<Integer> ipmDecisionsParameters = new HashSet(Arrays.asList(parameters.split(",")).stream()
                         .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
