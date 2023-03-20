@@ -1,5 +1,8 @@
 <img src="https://madiphs.org/wp-content/uploads/2023/01/MaDiPHS-Ikon-RGB-75.png" />
 
+![Coverage](.github/badges/jacoco.svg)
+![Branches](.github/badges/branches.svg)
+
 # MaDiPHS Weather Service
 This service is part of the <a href="https://madiphs.org/" target="_blank">MaDiPHS project</a>.
 The service provides the system with sufficient information for a client to be able to connect to and get information from any weather data source. 
