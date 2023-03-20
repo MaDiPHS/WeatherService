@@ -727,20 +727,12 @@ public class WeatherDataSource implements Comparable {
 	 */
 	public Feature getStation(String stationId)
 	{
-		ObjectMapper objectMapper = new ObjectMapper();
 		for(Feature stationFeature: this.getStationsGeometries()) {
-			try
-        	{
-        		if(objectMapper.writeValueAsString(stationFeature.getId()).equals(stationId))
+                String featureId = stationFeature.getId().toString().replaceAll("^\"|\"$", "");;
+                if(featureId.equals(stationId))
         		{
         			return stationFeature;
         		}
-        	}
-        	catch(JsonProcessingException ex)
-    		{
-    			LOGGER.debug(ex.getMessage());
-    			return null;
-    		}
 		}
 		return null;
 	}
