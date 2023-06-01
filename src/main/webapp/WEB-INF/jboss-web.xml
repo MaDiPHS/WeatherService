@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jboss-web>
-  <context-root>/WeatherService</context-root>
+  <context-root>/MaDiPHSWeatherService</context-root>
 </jboss-web>
