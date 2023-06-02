@@ -728,7 +728,7 @@ public class WeatherDataSource implements Comparable {
 	public Feature getStation(String stationId)
 	{
 		for(Feature stationFeature: this.getStationsGeometries()) {
-                String featureId = stationFeature.getId().toString().replaceAll("^\"|\"$", "");;
+                String featureId = stationFeature.getId().toString().replaceAll("^\"|\"$", "");
                 if(featureId.equals(stationId))
         		{
         			return stationFeature;
