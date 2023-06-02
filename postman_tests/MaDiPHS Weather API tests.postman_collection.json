@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "45511d69-2432-460f-8c9f-4481a4d8fa17",
-		"name": "IPM Decisions Weather API tests",
+		"_postman_id": "076479f6-dc1c-4865-b48f-0a120d872cc3",
+		"name": "MaDiPHS Weather API tests",
 		"description": "This is the test suite for the IPM Decisions Weather API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "3222856"
+		"_exporter_id": "5789128"
 	},
 	"item": [
 		{
@@ -488,7 +488,7 @@
 							"urlencoded": [
 								{
 									"key": "weatherStationId",
-									"value": "TA00321",
+									"value": "TA00390",
 									"type": "text"
 								},
 								{
@@ -503,12 +503,12 @@
 								},
 								{
 									"key": "timeStart",
-									"value": "2021-01-01T00:00:00+03:00",
+									"value": "2023-06-01T00:00:00+03:00",
 									"type": "text"
 								},
 								{
 									"key": "timeEnd",
-									"value": "2021-01-01T23:59:59+03:00",
+									"value": "2023-06-03T23:59:59+03:00",
 									"type": "text"
 								},
 								{
@@ -524,9 +524,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/tahmo",
+							"raw": "{{madiphs_wx_url}}/rest/weatheradapter/tahmo",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_wx_url}}"
 							],
 							"path": [
 								"rest",
@@ -1097,9 +1097,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource",
+							"raw": "{{madiphs_wx_url}}/rest/weatherdatasource",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_wx_url}}"
 							],
 							"path": [
 								"rest",
