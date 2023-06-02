@@ -572,7 +572,7 @@ public class WeatherAdapterService {
             return Response.status(Status.BAD_REQUEST).entity("Unable to parse credentials").build();
         }
 
-        String wds = "com.tahmo";
+        String wds = "org.tahmo";
         WeatherDataSource weatherDataSource;
         try {
             weatherDataSource = weatherDataSourceBean.getWeatherDataSourceById(wds);
