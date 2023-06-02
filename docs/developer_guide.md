@@ -1,5 +1,25 @@
 # Developer guide
 
+## Running locally on application server (e.g. WildFly)
+Compile using Maven:
+```bash
+$ mvn install 
+```
+Deploy the .war file on the application server
+### Configuration of the application server
+Example from WildFly's `standalone.xml`
+```xml
+<property name="net.ipmdecisions.weatherservice.COUNTRY_BOUNDARIES_FILE" value="/local/path/to/geo-countries/data/countries.geojson"/>
+<property name="org.madiphs.weatherservice.DATASOURCE_LIST_FILE" value="/local/path/to/Weather-Metadata/weather_datasources.yaml"/>
+<property name="net.ipmdecisions.weatherservice.WEATHER_API_URL" value="http://localhost:8080/MaDiPHSWeatherService"/
+```
+The country boundaries and Weather metadata can be cloned from here:
+```bash
+$ git clone --single-branch --branch main https://gitlab.nibio.no/madiphs/weather-metadata.git Weather-Metadata
+$ git clone --single-branch --branch master https://github.com/datasets/geo-countries.git
+```
+
+
 ## Building and deploying with Docker
 
 To see your current images, run `sudo docker images`
