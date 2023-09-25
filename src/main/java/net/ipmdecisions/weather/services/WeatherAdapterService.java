@@ -571,7 +571,6 @@ public class WeatherAdapterService {
         if(secretKey == null || validUserName == null || tahmoUserName == null || tahmoPassword == null) {
             return Response.serverError().entity("Web service is missing required configuration").build();
         }
-
         String userName, password;
         // If credentials are given, use them for authentication
         if(credentials != null && !credentials.trim().isEmpty()) {
@@ -581,7 +580,7 @@ public class WeatherAdapterService {
                 password = node.get(PARAM_PASSWORD).asText();
             } catch (JsonProcessingException jpe) {
                 LOGGER.error("Unable to parse credentials", jpe);
-                return Response.status(Status.BAD_REQUEST).entity("Unable to parse credentials").build();
+                return Response.status(Status.UNAUTHORIZED).entity("Unable to parse credentials").build();
             }
         }
         // Validate token, set userName and password to values from environment variables
@@ -595,19 +594,19 @@ public class WeatherAdapterService {
                     password = tahmoPassword;
                 } else {
                     LOGGER.error("'{}' is not a valid username", decodedClaim);
-                    return Response.status(Status.BAD_REQUEST).entity("Token does not contain a valid username").build();
+                    return Response.status(Status.UNAUTHORIZED).entity("Token does not contain a valid username").build();
                 }
             } catch (TokenExpiredException tee) {
                 LOGGER.error("Given token has expired", tee);
-                return Response.status(Status.BAD_REQUEST).entity(tee.getMessage()).build();
+                return Response.status(Status.UNAUTHORIZED).entity(tee.getMessage()).build();
             } catch (Exception e) {
                 LOGGER.error("Unable to decode or validate token", e);
-                return Response.status(Status.BAD_REQUEST).entity("Unable to decode or validate token").build();
+                return Response.status(Status.UNAUTHORIZED).entity("Unable to decode or validate token").build();
             }
         }
         else {
             LOGGER.error("Credentials and token missing from request");
-            return Response.status(Status.BAD_REQUEST).entity("Credentials or token must be provided").build();
+            return Response.status(Status.UNAUTHORIZED).entity("Credentials or token must be provided").build();
         }
 
         if (!logInterval.equals(3600)) {
