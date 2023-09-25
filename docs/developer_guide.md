@@ -21,6 +21,16 @@ $ git clone --single-branch --branch master https://github.com/datasets/geo-coun
 
 
 ## Building and deploying with Docker
+### Setting system properties
+The application may rely/relies on system properties for out-of-repo configurations. These could be auth tokens for access to weather datasources. For any system property that needs to be set, change the `sudo docker build` command and the `Dockerfile` accordingly. For example, if you have a property called `TAHMO_USERNAME`, change the `Dockerfile`'s last line by adding `-DTAHMO_USERNAME=${TAHMO_USERNAME}` at the end of the line, for example like this: 
+```Dockerfile
+CMD /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -Dorg.madiphs.weatherservice.DATASOURCE_LIST_FILE=/Weather-Metadata/weather_datasources.yaml -Dnet.ipmdecisions.weatherservice.COUNTRY_BOUNDARIES_FILE=/countries.geojson -Dnet.ipmdecisions.weatherservice.WEATHER_API_URL=${WEATHER_API_URL} -DTAHMO_USERNAME=${TAHMO_USERNAME}
+```
+When you start the container (se paragraph below too), pass the system property to the Dockerfile by adding it as an -e option:
+
+```bash
+$ sudo docker run --publish 18081:8080 --detach -e WEATHER_API_URL=http://madiphslocaldocker -e TAHMO_USERNAME=TopSecretUserName --name madiphsweather madiphs/weather_api:ALPHA-04
+```
 
 To see your current images, run `sudo docker images`
 
