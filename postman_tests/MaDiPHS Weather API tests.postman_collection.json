@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "076479f6-dc1c-4865-b48f-0a120d872cc3",
-		"name": "MaDiPHS Weather API tests",
+		"_postman_id": "30717fdd-dfb9-49a7-8e53-7c6cd6d41120",
+		"name": "MaDiPHS Weather API tests ORIGINAL",
 		"description": "This is the test suite for the IPM Decisions Weather API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "5789128"
+		"_exporter_id": "3222856"
 	},
 	"item": [
 		{
@@ -524,9 +524,9 @@
 							]
 						},
 						"url": {
-							"raw": "{{madiphs_wx_url}}/rest/weatheradapter/tahmo",
+							"raw": "{{wx_url}}/rest/weatheradapter/tahmo",
 							"host": [
-								"{{madiphs_wx_url}}"
+								"{{wx_url}}"
 							],
 							"path": [
 								"rest",
