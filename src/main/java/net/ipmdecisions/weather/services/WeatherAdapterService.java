@@ -19,6 +19,10 @@
 
 package net.ipmdecisions.weather.services;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,13 +37,8 @@ import java.util.Set;
 import java.util.Date;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -83,6 +82,10 @@ public class WeatherAdapterService {
     private static final String PARAM_PASSWORD = "password";
 
     private WeatherDataUtil weatherDataUtil;
+
+    private static final Algorithm jwtAlgorithm = Algorithm.HMAC256(System.getenv("TOKEN_SECRET_KEY"));
+    public static final String TAHMO_TOKEN_ISSUER = "MaDiPHS";
+    public static final String TAHMO_TOKEN_CLAIM = "userId";
 
     @EJB
     private WeatherDataSourceBean weatherDataSourceBean;
@@ -532,6 +535,7 @@ public class WeatherAdapterService {
      * @param parameters   Comma separated list of the requested weather parameters, given by <a href="/rest/parameter" target="new">their codes</a>
      * @param ignoreErrors Set to "true" if you want the service to return weather data regardless of there being errors in the service. Currently not in use.
      * @param credentials  json object with "userName" and "password" properties set
+     * @param authHeader   if credentials are not given, a JSON Web Token (JWT) can be used instead
      * @return weather data for the requested weather station and time period
      * @requestExample application/x-www-form-urlencoded
      * weatherStationId:TA00321
@@ -554,22 +558,59 @@ public class WeatherAdapterService {
             @FormParam("interval") Integer logInterval,
             @FormParam("parameters") String parameters,
             @FormParam("ignoreErrors") String ignoreErrors,
-            @FormParam("credentials") String credentials
+            @FormParam("credentials") String credentials,
+            @HeaderParam(HttpHeaders.AUTHORIZATION) String authHeader
     ) {
         LOGGER.debug("Request Tahmo observations for weather station {}", stationCode);
 
-        if (!logInterval.equals(3600)) {
-            return Response.status(Status.BAD_REQUEST).entity("This service only provides hourly data").build();
+        // Verify that all necessary environment variables are set
+        String secretKey = System.getenv("TOKEN_SECRET_KEY");
+        String validUserName = System.getenv("TOKEN_USERNAME");
+        String tahmoUserName = System.getenv("TAHMO_USERNAME");
+        String tahmoPassword = System.getenv("TAHMO_PASSWORD");
+        if(secretKey == null || validUserName == null || tahmoUserName == null || tahmoPassword == null) {
+            return Response.serverError().entity("Web service is missing required configuration").build();
+        }
+        String userName, password;
+        // If credentials are given, use them for authentication
+        if(credentials != null && !credentials.trim().isEmpty()) {
+            try {
+                JsonNode node = new ObjectMapper().readTree(credentials);
+                userName = node.get(PARAM_USER_NAME).asText();
+                password = node.get(PARAM_PASSWORD).asText();
+            } catch (JsonProcessingException jpe) {
+                LOGGER.error("Unable to parse credentials", jpe);
+                return Response.status(Status.UNAUTHORIZED).entity("Unable to parse credentials").build();
+            }
+        }
+        // Validate token, set userName and password to values from environment variables
+        else if(authHeader != null && !authHeader.trim().isEmpty() && authHeader.startsWith("Bearer ")) {
+            try {
+                String token = authHeader.substring(7); // Remove "Bearer " prefix
+                DecodedJWT decodedJWT = JWT.require(jwtAlgorithm).withIssuer(TAHMO_TOKEN_ISSUER).build().verify(token);
+                String decodedClaim = decodedJWT.getClaim(TAHMO_TOKEN_CLAIM).asString();
+                if (validUserName.equals(decodedClaim)) {
+                    userName = tahmoUserName;
+                    password = tahmoPassword;
+                } else {
+                    LOGGER.error("'{}' is not a valid username", decodedClaim);
+                    return Response.status(Status.UNAUTHORIZED).entity("Token does not contain a valid username").build();
+                }
+            } catch (TokenExpiredException tee) {
+                LOGGER.error("Given token has expired", tee);
+                return Response.status(Status.UNAUTHORIZED).entity(tee.getMessage()).build();
+            } catch (Exception e) {
+                LOGGER.error("Unable to decode or validate token", e);
+                return Response.status(Status.UNAUTHORIZED).entity("Unable to decode or validate token").build();
+            }
+        }
+        else {
+            LOGGER.error("Credentials and token missing from request");
+            return Response.status(Status.UNAUTHORIZED).entity("Credentials or token must be provided").build();
         }
 
-        String userName, password;
-        try {
-            JsonNode node = new ObjectMapper().readTree(credentials);
-            userName = node.get(PARAM_USER_NAME).asText();
-            password = node.get(PARAM_PASSWORD).asText();
-        } catch (JsonProcessingException jpe) {
-            LOGGER.error("Unable to parse credentials", jpe);
-            return Response.status(Status.BAD_REQUEST).entity("Unable to parse credentials").build();
+        if (!logInterval.equals(3600)) {
+            return Response.status(Status.BAD_REQUEST).entity("This service only provides hourly data").build();
         }
 
         String wds = "org.tahmo";

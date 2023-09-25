@@ -12,16 +12,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
+import static net.ipmdecisions.weather.services.WeatherAdapterService.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 @ExtendWith(MockitoExtension.class)
 class TahmoAdapterTest {
 
@@ -49,6 +52,33 @@ class TahmoAdapterTest {
         tahmoConnection = Mockito.mock(TahmoAdapter.TahmoConnection.class);
         adapter = new TahmoAdapter(tahmoConnection);
     }
+
+    @Test
+    //@Disabled
+    /**
+     * Use this test method to generate JWT token for a user. Do not check username and secret key into source control!
+     * Username and secret key must be available for the application as environment variables: TOKEN_USERNAME and
+     * TOKEN_SECRET_KEY. If/when more users should be admitted, this test method should be converted to a script which
+     * generates token for a given username + expiry date, and persists valid usernames to a file for later
+     * verification. Check content of tokens here: https://jwt.io/
+     */
+    public void generateJwtToken() {
+        String secretKey = "ADD-SECRET-KEY-HERE";
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        long oneHundredAndEightyDays = 15552000000L;
+
+        String jwtToken = JWT.create()
+                .withIssuer(TAHMO_TOKEN_ISSUER) // the party that created the token and signed it
+                .withSubject("Tahmo Weather Data") // the subject of the JWT
+                .withClaim(TAHMO_TOKEN_CLAIM, "ADD-USERNAME-HERE")
+                .withIssuedAt(new Date()) //  the time at which the JWT was created
+                .withNotBefore(new Date()) // the time before which the JWT should not be accepted for processing
+                .withExpiresAt(new Date(System.currentTimeMillis() + oneHundredAndEightyDays)) // the expiration time
+                .withJWTId(UUID.randomUUID().toString()) // unique identifier for the JWT
+                .sign(algorithm);
+        System.out.println(jwtToken);
+    }
+
 
     @Test
     public void shouldReturnNullIfTahmoResponseIsEmpty() throws ParseWeatherDataException {
