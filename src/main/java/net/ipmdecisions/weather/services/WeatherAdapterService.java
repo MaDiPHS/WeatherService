@@ -83,7 +83,7 @@ public class WeatherAdapterService {
 
     private WeatherDataUtil weatherDataUtil;
 
-    private static final String SECRET_KEY = System.getenv("org.madiphs.weatherservice.TOKEN_SECRET_KEY");
+    private static final String SECRET_KEY = System.getProperty("org.madiphs.weatherservice.TOKEN_SECRET_KEY");
     private static final Algorithm JWT_ALGORITHM = Algorithm.HMAC256(SECRET_KEY);
     public static final String TAHMO_TOKEN_ISSUER = "MaDiPHS";
     public static final String TAHMO_TOKEN_CLAIM = "userId";
@@ -565,9 +565,9 @@ public class WeatherAdapterService {
         LOGGER.debug("Request Tahmo observations for weather station {}", stationCode);
 
         // Verify that all necessary environment variables are set
-        String validUserName = System.getenv("org.madiphs.weatherservice.TOKEN_USERNAME");
-        String tahmoUserName = System.getenv("org.madiphs.weatherservice.TAHMO_USERNAME");
-        String tahmoPassword = System.getenv("org.madiphs.weatherservice.TAHMO_PASSWORD");
+        String validUserName = System.getProperty("org.madiphs.weatherservice.TOKEN_USERNAME");
+        String tahmoUserName = System.getProperty("org.madiphs.weatherservice.TAHMO_USERNAME");
+        String tahmoPassword = System.getProperty("org.madiphs.weatherservice.TAHMO_PASSWORD");
         if(SECRET_KEY == null || validUserName == null || tahmoUserName == null || tahmoPassword == null) {
             return Response.serverError().entity("Web service is missing required configuration").build();
         }
