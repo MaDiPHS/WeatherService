@@ -58,4 +58,5 @@ EXPOSE 8080
 
 # Set the default command to run on boot
 # This will boot WildFly in the standalone mode and bind to all interfaces
-CMD /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -Dorg.madiphs.weatherservice.DATASOURCE_LIST_FILE=/Weather-Metadata/weather_datasources.yaml -Dnet.ipmdecisions.weatherservice.COUNTRY_BOUNDARIES_FILE=/countries.geojson -Dnet.ipmdecisions.weatherservice.WEATHER_API_URL=${WEATHER_API_URL}
+# Run container like this: sudo docker run --publish 18081:8080 --detach  --name madiphsweather madiphs/weather_api:[YOUR_VERSION] -e TOKEN_USERNAME=[TOKEN_USERNAME] -e TAHMO_USERNAME=[TAHMO_USERNAME] -e TAHMO_PASSWORD=[TAHMO_PASSWORD] -e TOKEN_SECRET_KEY=[TOKEN_SECRET_KEY]
+CMD /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -Dorg.madiphs.weatherservice.DATASOURCE_LIST_FILE=/Weather-Metadata/weather_datasources.yaml -Dnet.ipmdecisions.weatherservice.COUNTRY_BOUNDARIES_FILE=/countries.geojson -Dnet.ipmdecisions.weatherservice.WEATHER_API_URL=${WEATHER_API_URL} -Dorg.madiphs.weatherservice.TOKEN_USERNAME=${TOKEN_USERNAME} -Dorg.madiphs.weatherservice.TAHMO_USERNAME=${TAHMO_USERNAME} -Dorg.madiphs.weatherservice.TAHMO_PASSWORD=${TAHMO_PASSWORD} -Dorg.madiphs.weatherservice.TOKEN_SECRET_KEY=${TOKEN_SECRET_KEY}

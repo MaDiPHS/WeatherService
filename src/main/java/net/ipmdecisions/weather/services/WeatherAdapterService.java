@@ -83,7 +83,8 @@ public class WeatherAdapterService {
 
     private WeatherDataUtil weatherDataUtil;
 
-    private static final Algorithm jwtAlgorithm = Algorithm.HMAC256(System.getenv("TOKEN_SECRET_KEY"));
+    private static final String SECRET_KEY = System.getenv("org.madiphs.weatherservice.TOKEN_SECRET_KEY");
+    private static final Algorithm JWT_ALGORITHM = Algorithm.HMAC256(SECRET_KEY);
     public static final String TAHMO_TOKEN_ISSUER = "MaDiPHS";
     public static final String TAHMO_TOKEN_CLAIM = "userId";
 
@@ -564,11 +565,10 @@ public class WeatherAdapterService {
         LOGGER.debug("Request Tahmo observations for weather station {}", stationCode);
 
         // Verify that all necessary environment variables are set
-        String secretKey = System.getenv("TOKEN_SECRET_KEY");
-        String validUserName = System.getenv("TOKEN_USERNAME");
-        String tahmoUserName = System.getenv("TAHMO_USERNAME");
-        String tahmoPassword = System.getenv("TAHMO_PASSWORD");
-        if(secretKey == null || validUserName == null || tahmoUserName == null || tahmoPassword == null) {
+        String validUserName = System.getenv("org.madiphs.weatherservice.TOKEN_USERNAME");
+        String tahmoUserName = System.getenv("org.madiphs.weatherservice.TAHMO_USERNAME");
+        String tahmoPassword = System.getenv("org.madiphs.weatherservice.TAHMO_PASSWORD");
+        if(SECRET_KEY == null || validUserName == null || tahmoUserName == null || tahmoPassword == null) {
             return Response.serverError().entity("Web service is missing required configuration").build();
         }
         String userName, password;
@@ -587,7 +587,7 @@ public class WeatherAdapterService {
         else if(authHeader != null && !authHeader.trim().isEmpty() && authHeader.startsWith("Bearer ")) {
             try {
                 String token = authHeader.substring(7); // Remove "Bearer " prefix
-                DecodedJWT decodedJWT = JWT.require(jwtAlgorithm).withIssuer(TAHMO_TOKEN_ISSUER).build().verify(token);
+                DecodedJWT decodedJWT = JWT.require(JWT_ALGORITHM).withIssuer(TAHMO_TOKEN_ISSUER).build().verify(token);
                 String decodedClaim = decodedJWT.getClaim(TAHMO_TOKEN_CLAIM).asString();
                 if (validUserName.equals(decodedClaim)) {
                     userName = tahmoUserName;
