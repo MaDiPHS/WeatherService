@@ -30,11 +30,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.*;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
@@ -43,6 +39,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import net.ipmdecisions.weather.controller.AmalgamationBean;
 import net.ipmdecisions.weather.controller.WeatherDataSourceBean;
 import net.ipmdecisions.weather.datasourceadapters.*;
 import net.ipmdecisions.weather.datasourceadapters.finnishmeteorologicalinstitute.FinnishMeteorologicalInstituteAdapter;
@@ -87,6 +84,9 @@ public class WeatherAdapterService {
     private static final Algorithm JWT_ALGORITHM = Algorithm.HMAC256(SECRET_KEY);
     public static final String TAHMO_TOKEN_ISSUER = "MaDiPHS";
     public static final String TAHMO_TOKEN_CLAIM = "userId";
+
+    @EJB
+    AmalgamationBean amalgamationBean;
 
     @EJB
     private WeatherDataSourceBean weatherDataSourceBean;
@@ -458,7 +458,89 @@ public class WeatherAdapterService {
         }
 
     }
-    
+    /**
+     * Get weather observations and forecasts in the IPM Decision's weather data format from the Open-Meteo.com service
+     *
+     * @param longitude WGS84 Decimal degrees
+     * @param latitude WGS84 Decimal degrees
+     * @param timeStart Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00)
+     * @param timeEnd End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00)
+     * @param logInterval The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly)
+     * @param parameters Comma separated list of the requested weather parameters, given by <a href="/rest/parameter" target="new">their codes</a>
+     * @param ignoreErrors Set to "true" if you want the service to return weather data regardless of there being errors in the service
+     * @pathExample /rest/weatheradapter/openmeteo?latitude=56.488&longitude=9.583&parameters=2001&timeStart=2021-10-01&timeEnd=2021-10-20&interval=86400
+     * @return
+     */
+    @GET
+    @POST
+    @Path("openmeteo/")
+    @GZIP
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOpenMeteoObservations(
+            @QueryParam("longitude") Double longitude,
+            @QueryParam("latitude") Double latitude,
+            @QueryParam("timeStart") String timeStart,
+            @QueryParam("timeEnd") String timeEnd,
+            @QueryParam("interval") Integer logInterval,
+            @QueryParam("parameters") String parameters,
+            @QueryParam("ignoreErrors") String ignoreErrors
+    )
+    {
+        List<Integer> ipmDecisionsParameters = parameters != null ? Arrays.asList(parameters.split(",")).stream()
+                .map(paramstr->Integer.valueOf(paramstr.strip())).collect(Collectors.toList())
+                : null;
+
+        ZoneId tzForLocation = amalgamationBean.getTimeZoneForLocation(longitude, latitude);
+        Instant timeStartInstant;
+        Instant timeEndInstant;
+
+        // Date parsing
+        // Is it a ISO-8601 timestamp or date?
+        DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE;
+        try
+        {
+            timeStartInstant = ZonedDateTime.parse(timeStart).toInstant();
+            timeEndInstant = ZonedDateTime.parse(timeEnd).toInstant();
+        }
+        catch(DateTimeParseException ex)
+        {
+
+            timeStartInstant = LocalDate.parse(timeStart, dtf).atStartOfDay(ZoneId.of("GMT+1")).toInstant();//.atZone().toInstant();
+            timeEndInstant = LocalDate.parse(timeEnd, dtf).atStartOfDay(ZoneId.of("GMT+1")).toInstant();//.atZone(ZoneId.of("Europe/Helsinki")).toInstant();
+        }
+
+        Boolean ignoreErrorsB = ignoreErrors != null ? ignoreErrors.equals("true") : false;
+
+
+        // Default is hourly, optional is daily
+        logInterval = (logInterval == null || logInterval != 86400) ? 3600 : 86400;
+
+        if(longitude == null || latitude == null)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing longitude and/or latitude. Please correct this.").build();
+        }
+
+        try
+        {
+            WeatherData theData = new OpenMeteoAdapter().getData(
+                    longitude, latitude, tzForLocation,
+                    timeStartInstant,timeEndInstant,
+                    logInterval,
+                    ipmDecisionsParameters
+            );
+            if(theData == null)
+            {
+                return Response.noContent().build();
+            }
+
+            return Response.ok().entity(theData).build();
+        }
+        catch(WeatherDataSourceException ex)
+        {
+            return Response.serverError().entity(ex.getMessage()).build();
+        }
+
+    }
     /**
      * Get weather observations in the IPM Decision's weather data format from the the network of MeteoBot stations 
      * [https://meteobot.com/en/]
@@ -506,22 +588,38 @@ public class WeatherAdapterService {
         try
         {
             JsonNode json = new ObjectMapper().readTree(credentials);
-            String userName = json.get(PARAM_USER_NAME).asText();
-            String password = json.get(PARAM_PASSWORD).asText();
+            String userName = json.get("userName").asText();
+            String password = json.get("password").asText();
 
             Set<Integer> ipmDecisionsParameters = new HashSet(Arrays.asList(parameters.split(",")).stream()
-                        .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
-            // Date parsing
-            LocalDate startDate = LocalDate.parse(timeStart);
-            LocalDate endDate = LocalDate.parse(timeEnd);
+                    .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
 
+
+            // Date parsing
+            LocalDate startDate, endDate;
+            try
+            {
+                startDate = LocalDate.parse(timeStart);
+                endDate = LocalDate.parse(timeEnd);
+            }
+            catch(DateTimeParseException ex)
+            {
+                ZonedDateTime zStartDate = ZonedDateTime.parse(timeStart);
+                ZonedDateTime zEndDate = ZonedDateTime.parse(timeEnd);
+                startDate = zStartDate.toLocalDate();
+                endDate = zEndDate.toLocalDate();
+            }
+
+            //LOGGER.debug("timeStart=" + timeStart + " => startDate=" + startDate + ". timeEnd=" + timeEnd + " => endDate=" + endDate);
             Boolean ignoreErrorsB = ignoreErrors != null ? ignoreErrors.equals("true") : false;
 
             WeatherData theData = new MeteobotAPIAdapter().getWeatherData(weatherStationId,userName,password,startDate, endDate);
+            //LOGGER.debug(this.getWeatherDataUtil().serializeWeatherData(this.getWeatherDataUtil().filterParameters(theData, ipmDecisionsParameters)));
             return Response.ok().entity(this.getWeatherDataUtil().filterParameters(theData, ipmDecisionsParameters)).build();
         }
         catch(JsonProcessingException | ParseWeatherDataException ex)
         {
+            ex.printStackTrace();
             return Response.serverError().entity(ex).build();
         }
     }
@@ -700,25 +798,37 @@ public class WeatherAdapterService {
         try
         {
             JsonNode json = new ObjectMapper().readTree(credentials);
-            String publicKey = json.get(PARAM_USER_NAME).asText();
-            String privateKey = json.get(PARAM_PASSWORD).asText();
+            String publicKey = json.get("userName").asText();
+            String privateKey = json.get("password").asText();
 
             Set<Integer> ipmDecisionsParameters = new HashSet(Arrays.asList(parameters.split(",")).stream()
-                        .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
+                    .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
             // Date parsing
-            LocalDate startDate = LocalDate.parse(timeStart);
-            LocalDate endDate = LocalDate.parse(timeEnd);
+            LocalDate startDate, endDate;
+            try
+            {
+                startDate = LocalDate.parse(timeStart);
+                endDate = LocalDate.parse(timeEnd);
+            }
+            catch(DateTimeParseException ex)
+            {
+                ZonedDateTime zStartDate = ZonedDateTime.parse(timeStart);
+                ZonedDateTime zEndDate = ZonedDateTime.parse(timeEnd);
+                startDate = zStartDate.toLocalDate();
+                endDate = zEndDate.toLocalDate();
+            }
 
             Boolean ignoreErrorsB = ignoreErrors != null ? ignoreErrors.equals("true") : false;
 
             WeatherData theData = new MetosAPIAdapter().getWeatherData(weatherStationId,publicKey,privateKey,startDate, endDate);
             if(theData != null)
             {
-            	return Response.ok().entity(this.getWeatherDataUtil().filterParameters(theData, ipmDecisionsParameters)).build();
+                //LOGGER.debug(this.getWeatherDataUtil().serializeWeatherData(this.getWeatherDataUtil().filterParameters(theData, ipmDecisionsParameters)));
+                return Response.ok().entity(this.getWeatherDataUtil().filterParameters(theData, ipmDecisionsParameters)).build();
             }
             else
             {
-            	return Response.status(Status.NO_CONTENT).build();
+                return Response.status(Status.NO_CONTENT).build();
             }
         }
         catch(ParseWeatherDataException | GeneralSecurityException | IOException ex)
@@ -735,6 +845,7 @@ public class WeatherAdapterService {
      * authentication to access.
      * 
      * @param weatherStationId The weather station id 
+     * @param timeZoneId e.g. "Europe/Oslo". Optional. Default is UTC
      * @param timeStart Start of weather data period (ISO-8601 Timestamp, e.g. 2020-06-12T00:00:00+03:00)
      * @param timeEnd End of weather data period (ISO-8601 Timestamp, e.g. 2020-07-03T00:00:00+03:00)
      * @param logInterval The measuring interval in seconds. Please note that the only allowed interval in this version is 3600 (hourly)
@@ -758,6 +869,7 @@ public class WeatherAdapterService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDavisFruitwebObservations(
             @FormParam("weatherStationId") String weatherStationId,
+            @FormParam("timeZone") String timeZoneId,
             @FormParam("timeStart") String timeStart,
             @FormParam("timeEnd") String timeEnd,
             @FormParam("interval") Integer logInterval,
@@ -766,6 +878,8 @@ public class WeatherAdapterService {
             @FormParam("credentials") String credentials
     )
     {
+        //LOGGER.debug("(getDavisFruitwebObservations) timeZone=" + timeZoneId);
+        TimeZone timeZone = timeZoneId != null ? TimeZone.getTimeZone(ZoneId.of(timeZoneId)) : TimeZone.getTimeZone("UTC");
         // We only accept requests for hourly data
         if(!logInterval.equals(3600))
         {
@@ -774,20 +888,32 @@ public class WeatherAdapterService {
         try
         {
             JsonNode json = new ObjectMapper().readTree(credentials);
-            String userName = json.get(PARAM_USER_NAME).asText();
-            String password = json.get(PARAM_PASSWORD).asText();
+            String userName = json.get("userName").asText();
+            String password = json.get("password").asText();
 
             Set<Integer> ipmDecisionsParameters = new HashSet(Arrays.asList(parameters.split(",")).stream()
-                        .map(paramstr->Integer.parseInt(paramstr.strip())).collect(Collectors.toList()));
+                    .map(paramstr->Integer.valueOf(paramstr.strip())).collect(Collectors.toList()));
             // Date parsing
-            LocalDate startDate = LocalDate.parse(timeStart);
-            LocalDate endDate = LocalDate.parse(timeEnd);
+            LocalDate startDate, endDate;
+            try
+            {
+                startDate = LocalDate.parse(timeStart);
+                endDate = LocalDate.parse(timeEnd);
+            }
+            catch(DateTimeParseException ex)
+            {
+                ZonedDateTime zStartDate = ZonedDateTime.parse(timeStart);
+                ZonedDateTime zEndDate = ZonedDateTime.parse(timeEnd);
+                startDate = zStartDate.toLocalDate();
+                endDate = zEndDate.toLocalDate();
+            }
 
             Boolean ignoreErrorsB = ignoreErrors != null ? ignoreErrors.equals("true") : false;
 
-            
-            
-            WeatherData theData = new DavisFruitwebAdapter().getWeatherData(weatherStationId, password, startDate, endDate);
+
+
+            WeatherData theData = new DavisFruitwebAdapter().getWeatherData(weatherStationId, password, startDate, endDate, timeZone);
+            //LOGGER.debug(this.getWeatherDataUtil().serializeWeatherData(this.getWeatherDataUtil().filterParameters(theData, ipmDecisionsParameters)));
             return Response.ok().entity(this.getWeatherDataUtil().filterParameters(theData, ipmDecisionsParameters)).build();
         }
         catch(ParseWeatherDataException | IOException ex)

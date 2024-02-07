@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2022 NIBIO <http://www.nibio.no/>. 
- * 
+ * Copyright (c) 2022 NIBIO <http://www.nibio.no/>.
+ *
  * This file is part of IPM Decisions Weather Service.
  * IPM Decisions Weather Service is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * IPM Decisions Weather Service is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with IPM Decisions Weather Service.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package net.ipmdecisions.weather.controller;
 
@@ -28,15 +28,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -46,26 +43,39 @@ import net.ipmdecisions.weather.entity.LocationWeatherData;
 import net.ipmdecisions.weather.entity.WeatherData;
 import net.ipmdecisions.weather.entity.WeatherDataSource;
 import net.ipmdecisions.weather.entity.WeatherParameter;
-import net.ipmdecisions.weather.services.WeatherDataSourceService;
 
 /**
- * 
+ *
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  *
  */
 @Stateless
 public class AmalgamationBean {
-	
+
+	public AmalgamationBean() {
+	}
+
+	/**
+	 * Use this if you're not injecting this bean through @EJB
+	 * @param weatherDataSourceBean
+	 * @param metaDataBean
+	 */
+	public AmalgamationBean(WeatherDataSourceBean weatherDataSourceBean, MetaDataBean metaDataBean)
+	{
+		this.weatherDataSourceBean = weatherDataSourceBean;
+		this.metaDataBean = metaDataBean;
+	}
+
 	TimeZoneEngine tzEngine;
-	
+
 	@EJB
 	protected WeatherDataSourceBean weatherDataSourceBean;
-	
+
 	@EJB
 	protected MetaDataBean metaDataBean;
-	
+
 	// Interchangeable parameters (e.g. instantaneous and average temperatures)
-	// Temperature: 1001 (inst) - 1002 (avg) 
+	// Temperature: 1001 (inst) - 1002 (avg)
 	// Relative humidity: 3001 (inst) - 3002 (avg)
 	// Wind speed: 4002 (inst 2m) - 4003 (avg 2m) - 4012 (inst 10m) - 4013 (avg 10m)
 	// Used in  this.addFallbackParameters(WeatherData weatherData, Set<Integer> missingParameters)
@@ -78,19 +88,19 @@ public class AmalgamationBean {
 			4003, List.of(4002,4013,4012),
 			4012, List.of(4013,4002,4003),
 			4013, List.of(4012,4003,4002)
-			);
-	
+	);
+
 	/*
 	 * Parameters that can be used to calculate the requested parameter
 	 */
-	private Map<Integer, List<Integer>> calculationParams = Map.of(
+	private final Map<Integer, List<Integer>> calculationParams = Map.of(
 			3101, List.of(3001,3002,3003), // Leaf wetness 2m
 			3102, List.of(3001,3002,3003), // Leaf wetness in canopy
 			3103, List.of(3001,3002,3003)  // Leaf wetness in grass
-			);
-	
+	);
+
 	/**
-	 * Adds missing parameters to the data set, using fallback parameters from the same data set 
+	 * Adds missing parameters to the data set, using fallback parameters from the same data set
 	 * @param weatherData
 	 * @param missingParameters
 	 * @return
@@ -108,7 +118,7 @@ public class AmalgamationBean {
 					if(weatherData.containsWeatherParameter(fallback))
 					{
 						// Add the missing parameter to end of parameter list in weather data
-						List<Integer> wpList = new ArrayList<Integer>(Arrays.asList(weatherData.getWeatherParameters())); 
+						List<Integer> wpList = new ArrayList<Integer>(Arrays.asList(weatherData.getWeatherParameters()));
 						wpList.add(missingParameter);
 						weatherData.setWeatherParameters(wpList.toArray(new Integer[wpList.size()]));
 						// For each lwd, add the fallback to end of data list
@@ -138,13 +148,13 @@ public class AmalgamationBean {
 					}
 				}
 			}
-			
+
 		}
 		return weatherData;
 	}
-	
 
-	
+
+
 	/**
 	 * Based on the provided location: Attempts to pick the best weather data source
 	 * As of 2022-01-18 it returns a URL for the Euroweather service () by default
@@ -156,9 +166,9 @@ public class AmalgamationBean {
 	{
 		WeatherDataSource wds = this.getWeatherDataSourceBestEffort(longitude, latitude);
 		return new URL(wds.getEndpoint());
-		
+
 	}
-	
+
 	/**
 	 * Based on the provided location: Attempts to pick the best weather data source
 	 * As of 2022-01-18 it returns a the Euroweather service () by default
@@ -169,21 +179,31 @@ public class AmalgamationBean {
 	public WeatherDataSource getWeatherDataSourceBestEffort(Double longitude, Double latitude) throws IOException
 	{
 		// We have a few "best" data sources
-		// 
+		//
 		return weatherDataSourceBean.getWeatherDataSourceById("net.ipmdecisions.dwd.euroweather");
 	}
-	
+
+	/**
+	 * Combine a list of weatherData. Data from the first in the list are kept, any missing data are added from the other files
+	 * @param weatherData
+	 * @param timeStart
+	 * @param timeEnd
+	 * @param interval
+	 * @param zoneId
+	 * @return
+	 * @throws IOException
+	 */
 	public WeatherData getFusionedWeatherData(
 			List<WeatherData> weatherData,
 			Instant timeStart,
 			Instant timeEnd,
 			Integer interval,
 			ZoneId zoneId
-			) throws IOException
+	) throws IOException
 	{
 		ObjectMapper oMapper = new ObjectMapper();
 		oMapper.registerModule(new JavaTimeModule());
-		Long length = (timeEnd.toEpochMilli() - timeStart.toEpochMilli()) / 1000 / interval;
+		Long length = 1 + (timeEnd.toEpochMilli() - timeStart.toEpochMilli()) / 1000 / interval;
 		WeatherData fusionedWD = new WeatherData();
 		fusionedWD.setTimeStart(timeStart);
 		fusionedWD.setTimeEnd(timeEnd);
@@ -193,24 +213,24 @@ public class AmalgamationBean {
 			// Anything to work with here?
 			// Has to contain relevant weather parameters
 			// Has to have data with minimum the requested interval (hourly when requested daily are OK, the opposite is not)
-			Set<Integer> currentWDParams = currentWD.getWeatherParameters() != null ? 
+			Set<Integer> currentWDParams = currentWD.getWeatherParameters() != null ?
 					Set.copyOf(Arrays.asList(currentWD.getWeatherParameters()))
 					:null;
 			if(currentWDParams == null || currentWD.getInterval() > interval)
 			{
 				continue;
 			}
-			
+
 			// Which parameters are new?
-			List<Integer> fusionedWDParams = fusionedWD.getWeatherParameters() != null ? 
+			List<Integer> fusionedWDParams = fusionedWD.getWeatherParameters() != null ?
 					Arrays.asList(fusionedWD.getWeatherParameters())
 					:new ArrayList<>();
 			List<Integer> newParams = currentWDParams.stream()
 					.filter(param->  ! fusionedWDParams.contains(param))
 					.collect(Collectors.toList());
-			
-			
-			
+
+
+
 			// Do we need to aggregate?
 			if(currentWD.getInterval() != interval)
 			{
@@ -223,10 +243,10 @@ public class AmalgamationBean {
 					continue;
 				}
 			}
-			
+
 			// Currently only one set of data!
 			LocationWeatherData currentLWD = currentWD.getLocationWeatherData().get(0);
-			
+
 			// From where to start putting data
 			Long startRowInDataMatrix = Math.max(0,(currentWD.getTimeStart().toEpochMilli() - timeStart.toEpochMilli()) / 1000 / interval);
 			// From where to start looking for data
@@ -242,15 +262,15 @@ public class AmalgamationBean {
 				fusionedWD.addLocationWeatherData(new LocationWeatherData(
 						currentLWD.getLongitude(), currentLWD.getLatitude(),currentLWD.getAltitude(),
 						0,0
-						));
+				));
 			}
 			LocationWeatherData fusionedLWD = fusionedWD.getLocationWeatherData().get(0);
-			
-			// 
-			
+
+			//
+
 			Double[][] dataMatrix = new Double[length.intValue()][fusionedWDParams.size() + newParams.size()];
-			
-			// First: Add the values from the current fusionedWD. 
+
+			// First: Add the values from the current fusionedWD.
 			for(int row = 0; row < fusionedLWD.getData().length ; row++)
 			{
 				for(int col =0; col < fusionedWDParams.size();col++)
@@ -263,7 +283,7 @@ public class AmalgamationBean {
 			}
 			/*
 			System.out.println("dataMatrix length=" + length + ", currentLWD.getData().length=" + currentLWD.getData().length);
-			System.out.println("dataMatrix width =" + (fusionedWDParams.size() + " + " + newParams.size()) + ", newParams = " 
+			System.out.println("dataMatrix width =" + (fusionedWDParams.size() + " + " + newParams.size()) + ", newParams = "
 			+ newParams.stream().map(i->String.valueOf(i)).collect(Collectors.joining(",")));
 			*/
 			for(int row = 0; (row + startRowInCurrentWD) < currentLWD.getData().length && startRowInDataMatrix.intValue() + row < dataMatrix.length; row++)
@@ -277,10 +297,10 @@ public class AmalgamationBean {
 					{
 						// We must also look for replacement parameter values
 						Double replacementValue = null;
-						
+
 						for(Integer interchangeableParameter: this.getInterchangeableParameters(fusionedWD.getWeatherParameters()[col]))
 						{
-							
+
 							if(currentWD.getParameterIndex(interchangeableParameter) != null)
 							{
 								replacementValue = currentLWD.getData()[row + startRowInCurrentWD][currentWD.getParameterIndex(interchangeableParameter)];
@@ -302,13 +322,13 @@ public class AmalgamationBean {
 					dataMatrix[startRowInDataMatrix.intValue() + row][col++] = currentLWD.getData()[row + startRowInCurrentWD][paramIndex];
 					//System.out.println("Adding value (" + currentLWD.getData()[row + startRowInCurrentWD][paramIndex] + ") at [" + (startRowInDataMatrix.intValue() + row )+ "]" + Instant.ofEpochMilli(timeStart.toEpochMilli() + (startRowInDataMatrix.intValue() + row) * interval * 1000l));
 				}
-				
+
 			}
 			fusionedLWD.setData(dataMatrix);
 			List<Integer> newFusionedWDParams = new ArrayList<>(fusionedWDParams); // To make sure it's mutable
 			newFusionedWDParams.addAll(newParams);
-			fusionedWD.setWeatherParameters(newFusionedWDParams.toArray(new Integer[newFusionedWDParams.size()]));
-			
+			fusionedWD.setWeatherParameters(newFusionedWDParams.toArray(Integer[]::new));
+
 			// We must update the qc and amalgamation arrays too
 			Integer[] newQC = new Integer[fusionedWD.getWeatherParameters().length];
 			Integer[] newAmalgamation = new Integer[fusionedWD.getWeatherParameters().length];
@@ -337,7 +357,7 @@ public class AmalgamationBean {
 		}
 		return fusionedWD;
 	}
-	
+
 	/**
 	 * Get weather data sources for this location and parameters in priority order
 	 * @param longitude
@@ -349,16 +369,16 @@ public class AmalgamationBean {
 	 * @throws IOException
 	 */
 	public List<WeatherDataSource> getWeatherDataSourcesInPriorityOrder(
-			Double longitude, Double latitude, 
+			Double longitude, Double latitude,
 			List<Integer> requestedParameters,
 			Instant timeStart,
 			Instant timeEnd
-			) throws IOException
+	) throws IOException
 	{
 		Double tolerance = 2000.0; // Tolerance in meters for stations
 		// Location
 		List<WeatherDataSource> candidates = weatherDataSourceBean.getWeatherDataSourcesForLocation(longitude, latitude, tolerance);
-		// Must have at least one of the requested parameters (including fallbacks) 
+		// Must have at least one of the requested parameters (including fallbacks)
 		// OR (a) parameter(s) that can be used to calculate one of the requested parameters
 		// Must (according to meta data) contain data for the given period
 		Set<Integer> requestedInterchangeableAndOrCalculationParameters = new HashSet<>();
@@ -376,28 +396,28 @@ public class AmalgamationBean {
 		}
 		//System.out.println("timeStart=" + timeStart + ", timeEnd=" + timeEnd);
 		candidates = candidates.stream().filter(c -> {
-				for(int i=0;i<c.getParameters().getCommon().length;i++)
+			for(int i=0;i<c.getParameters().getCommon().length;i++)
+			{
+				// Must have at least one of the requested parameters (including fallbacks)
+				if(requestedInterchangeableAndOrCalculationParameters.contains(c.getParameters().getCommon()[i]))
 				{
-					// Must have at least one of the requested parameters (including fallbacks)
-					if(requestedInterchangeableAndOrCalculationParameters.contains(c.getParameters().getCommon()[i]))
+					//System.out.println(c.getName() + " temporalStart: " + c.getTemporalStart() + ", temporalEnd: " + c.getTemporalEnd());
+
+					// Must (according to meta data) contain data for the given period
+					if(c.getTemporalStart().isBefore(timeEnd) && c.getTemporalEnd().isAfter(timeStart))
 					{
-						//System.out.println(c.getName() + " temporalStart: " + c.getTemporalStart() + ", temporalEnd: " + c.getTemporalEnd());
-						
-						// Must (according to meta data) contain data for the given period
-						if(c.getTemporalStart().isBefore(timeEnd) && c.getTemporalEnd().isAfter(timeStart))
-						{
-							return true;
-						}
+						return true;
 					}
 				}
-				return false;
-			}).collect(Collectors.toList());
-		
+			}
+			return false;
+		}).collect(Collectors.toList());
+
 		Collections.sort(candidates);
 		Collections.reverse(candidates);
 		return candidates;
 	}
-	
+
 	/**
 	 * Util method for getting a list of all interchangeable parameters (e.g. instantaneous and average temperature)
 	 * @param parameter
@@ -412,7 +432,7 @@ public class AmalgamationBean {
 		}
 		return retVal;
 	}
-	
+
 	/**
 	 * TODO Make more streamlined
 	 * @param inputParameters
@@ -429,7 +449,7 @@ public class AmalgamationBean {
 		}
 		return retVal;
 	}
-	
+
 	/**
 	 * Using this API: https://github.com/RomanIakovlev/timeshape
 	 * @return
@@ -444,9 +464,9 @@ public class AmalgamationBean {
 		}
 		return this.tzEngine;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param longitude
 	 * @param latitude
 	 * @return a ZoneId for the specified location OR the system's default if not found
@@ -455,15 +475,15 @@ public class AmalgamationBean {
 	{
 		return this.getTimeZoneEngine().query(latitude, longitude).orElse(ZoneId.systemDefault());
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param source
 	 * @param requestedInterval
 	 * @param timeZone
 	 * @return
 	 * @throws WeatherDataAggregationException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public WeatherData aggregate(WeatherData source, Integer requestedInterval, ZoneId timeZone) throws WeatherDataAggregationException, IOException
 	{
@@ -476,14 +496,16 @@ public class AmalgamationBean {
 		{
 			return source;
 		}
-		
+
 		// Bucket size
 		Integer sourceValuesPerAggregationValue = requestedInterval / source.getInterval();
 		//System.out.println("sourceValuesPerAggregationValue=" + sourceValuesPerAggregationValue);
 		// What's the start index, considering midnight for time zone? (Assuming hourly to daily)
+		//System.out.println("[AmalgamationBean.aggregate]: timeZone=" + timeZone);
+		//System.out.println("[AmalgamationBean.aggregate]: source.getTimeStart().atZone(timeZone).getHour()=" + source.getTimeStart().atZone(timeZone).getHour());
 		Integer startIndex = source.getTimeStart().atZone(timeZone).getHour() == 0 ? 0 : 23 - source.getTimeStart().atZone(timeZone).getHour();
 		// TODO If the start index >= 15, consider creating a "day 1" using those values
-		
+
 		// Length of the aggregation array
 		Integer length = (int) Math.ceil((source.getLocationWeatherData().get(0).getLength().doubleValue() - startIndex) / sourceValuesPerAggregationValue);
 		//System.out.println("[AmalgamationBean.aggregate]: source data length=" + source.getLocationWeatherData().get(0).getLength());
@@ -520,7 +542,7 @@ public class AmalgamationBean {
 		source.setInterval(requestedInterval);
 		return source;
 	}
-	
+
 	/**
 	 * Factory method for aggregating an array of values
 	 * @param values
@@ -549,25 +571,25 @@ public class AmalgamationBean {
 				throw new WeatherDataAggregationException("ERROR: Could not find method for aggregation type " + metaDataBean.getWeatherParameter(parameterId).getAggregationType());
 		}
 	}
-	
+
 	public Double aggregateValuesAverage(Double[] values)
 	{
 		return this.aggregateValuesSum(values) / values.length;
 	}
-	
+
 	public Double aggregateValuesSum(Double[] values)
 	{
 		return Arrays.asList(values).stream().filter(v -> v != null).reduce(0d, Double::sum);
 	}
-	
+
 	public Double aggregateValuesMinimum(Double[] values)
 	{
 		return Arrays.asList(values).stream().filter(v -> v != null).min(Double::compare).get();
 	}
-	
+
 	public Double aggregateValuesMaximum(Double[] values)
 	{
 		return Arrays.asList(values).stream().filter(v -> v != null).max(Double::compare).get();
 	}
-	
+
 }

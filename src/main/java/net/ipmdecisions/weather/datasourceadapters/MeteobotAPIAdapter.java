@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
- * 
+ * Copyright (c) 2020 NIBIO <http://www.nibio.no/>.
+ *
  * This file is part of IPMDecisionsWeatherService.
  * IPMDecisionsWeatherService is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * IPMDecisionsWeatherService is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with IPMDecisionsWeatherService.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package net.ipmdecisions.weather.datasourceadapters;
 
@@ -36,43 +36,47 @@ import java.util.TimeZone;
 import net.ipmdecisions.weather.entity.WeatherData;
 import net.ipmdecisions.weather.util.vips.VIPSWeatherObservation;
 import net.ipmdecisions.weather.util.vips.WeatherUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * Gets data from the Meteobot API. Read about the API here:
- * 
+ *
  * Code from the VIPSWeatherProxy adapted to IPM Decisions
  *
- * @copyright 2020 <a href="http://www.nibio.no/">NIBIO</a>
+ * @copyright 2020-2024 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Brita Linnestad <brita.linnestad@nibio.no>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class MeteobotAPIAdapter {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(MeteobotAPIAdapter.class);
 
     private final WeatherUtils weatherUtils;
 
     public final static String METEOS_URL_TEMPLATE = "https://export.meteobot.com/v1/Generic/{0}?id={1,number,#}&startdate={2}&enddate={3}&timeFormat=iso-8601";
 
     private final static String[][] elementMeasurementTypes = {
-        {"airTemperature", "TM", "AVG"},
-        {"airPressure", "POM", "AVG"},
-        {"airHumidity", "UM", "AVG"},
-        {"dewPoint", "DUMMY", "AVG"},
-        {"earthHumidity1", "EH1", "AVG"},
-        {"earthHumidity2", "EH2", "AVG"},
-        {"earthHumidity3", "EH3", "AVG"},
-        {"earthTemperature1", "ET1", "AVG"},
-        {"earthTemperature2", "ET2", "AVG"},
-        {"earthTemperature3", "ET3", "AVG"},
-        {"leafWetness1", "BT1", "SUM"},
-        {"leafWetness2", "BT2", "SUM"},
-        {"precipitation", "RR", "SUM"},
-        {"windDirection", "DM2", "AVG"},
-        {"windSpeed", "FM2", "AVG"},
-        {"solarRadiation", "Q0", "AVG"},
-        {"batteryVoltage", "BATTERY", "AVG"},
-        {"solarPanelVoltage", "DUMMY", "AVG"},
-        {"evapotranspiration", "DUMMY", "AVG"}
+            {"airTemperature", "TM", "AVG"},
+            {"airPressure", "POM", "AVG"},
+            {"airHumidity", "UM", "AVG"},
+            {"dewPoint", "DUMMY", "AVG"},
+            {"earthHumidity1", "EH1", "AVG"},
+            {"earthHumidity2", "EH2", "AVG"},
+            {"earthHumidity3", "EH3", "AVG"},
+            {"earthTemperature1", "ET1", "AVG"},
+            {"earthTemperature2", "ET2", "AVG"},
+            {"earthTemperature3", "ET3", "AVG"},
+            {"leafWetness1", "BT1", "SUM"},
+            {"leafWetness2", "BT2", "SUM"},
+            {"precipitation", "RR", "SUM"},
+            {"windDirection", "DM2", "AVG"},
+            {"windSpeed", "FM2", "AVG"},
+            {"solarRadiation", "Q0", "AVG"},
+            {"batteryVoltage", "BATTERY", "AVG"},
+            {"solarPanelVoltage", "DUMMY", "AVG"},
+            {"evapotranspiration", "DUMMY", "AVG"}
     };
 
     public WeatherData getWeatherData(Integer stationID, String userName, String password, LocalDate startDate, LocalDate endDate) throws ParseWeatherDataException {
