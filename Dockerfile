@@ -14,8 +14,7 @@ RUN git clone --single-branch --branch master https://github.com/datasets/geo-co
 # Use latest jboss/base-jdk:11 image as the base
 FROM eclipse-temurin:17-jammy
 
-RUN groupadd -r jboss -g 1000 && useradd -u 1000 -r -g jboss -m -d /opt/jboss -s /sbin/nologin -c "JBoss user" jboss && \
-    chmod 755 /opt/jboss \
+RUN groupadd -r jboss -g 1000 && useradd -u 1000 -r -g jboss -m -d /opt/jboss -s /sbin/nologin -c "JBoss user" jboss && chmod 755 /opt/jboss
 
 # Set the WILDFLY_VERSION env variable
 ENV WILDFLY_VERSION 26.1.3.Final
@@ -35,7 +34,7 @@ RUN cd $HOME \
     && chown -R jboss:0 ${JBOSS_HOME} \
     && chmod -R g+rw ${JBOSS_HOME}
 
-# Replace standalone.xml (the main WildFly config file)
+# Replace standalone.xml_26.1.3.Final (the main WildFly config file)
 COPY ./wildfly_config/standalone.xml_${WILDFLY_VERSION} ${JBOSS_HOME}/standalone/configuration/standalone.xml  
 
 ENV APP_VERSION=0.10.0
