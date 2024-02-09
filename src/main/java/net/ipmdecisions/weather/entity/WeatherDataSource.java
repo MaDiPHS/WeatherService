@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2021 NIBIO <http://www.nibio.no/>. 
- * 
+ * Copyright (c) 2021 NIBIO <http://www.nibio.no/>.
+ *
  * This file is part of IPMDecisionsWeatherService.
  * IPMDecisionsWeatherService is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * IPMDecisionsWeatherService is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with IPMDecisionsWeatherService.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package net.ipmdecisions.weather.entity;
@@ -53,85 +53,85 @@ import org.wololo.jts2geojson.GeoJSONReader;
 
 /**
  * A weather data source is an online service that provides weather data to the
- * platform. It could be anything from a national meteorological service to a 
+ * platform. It could be anything from a national meteorological service to a
  * single weather station set up by a farmer
- * 
+ *
  * @copyright 2021 <a href="http://www.nibio.no/">NIBIO</a>
  * @author Tor-Einar Skog <tor-einar.skog@nibio.no>
  */
 public class WeatherDataSource implements Comparable {
-	
-	private static Logger LOGGER = LoggerFactory.getLogger(WeatherDataSource.class);
-	
+
+    private static Logger LOGGER = LoggerFactory.getLogger(WeatherDataSource.class);
+
     private String id, name, description, public_URL,endpoint, authentication_type, needs_data_control, access_type;
     private Integer priority;
     private Temporal temporal;
-    private Parameters parameters; 
+    private Parameters parameters;
     private Spatial spatial;
     private Organization organization;
     private Boolean active;
-    
+
     public final static String ACCESS_TYPE_STATIONS="stations";
     public final static String ACCESS_TYPE_LOCATION="location";
-    
-    
+
+
     /** No authentication required for the data source */
     public static String AUTHENTICATION_TYPE_NONE = "NONE";
 
-    
-    /** 
+
+    /**
      * <p>
-     * This implies http POST and sending 
-     * parameters x-www-form-urlencoded, adding parameter 
+     * This implies http POST and sending
+     * parameters x-www-form-urlencoded, adding parameter
      * <code>credentials={"username":"XXX", "password":"XXX"}</code>
      * </p>
      */
     public static String AUTHENTICATION_TYPE_CREDENTIALS = "CREDENTIALS";
-    
+
     /**
      * A bearer token must be provided in the Authorization header
      */
     public static String AUTHENTICATION_TYPE_BEARER_TOKEN = "BEARER_TOKEN";
-    
+
     private List<String> authenticationTypes = Stream.of(
-    		WeatherDataSource.AUTHENTICATION_TYPE_NONE,
-    		WeatherDataSource.AUTHENTICATION_TYPE_CREDENTIALS,
-    		WeatherDataSource.AUTHENTICATION_TYPE_BEARER_TOKEN
-    		).collect(Collectors.toList());
-    
+            WeatherDataSource.AUTHENTICATION_TYPE_NONE,
+            WeatherDataSource.AUTHENTICATION_TYPE_CREDENTIALS,
+            WeatherDataSource.AUTHENTICATION_TYPE_BEARER_TOKEN
+    ).collect(Collectors.toList());
+
     @JsonIgnore
     public Instant getTemporalStart()
     {
-    	
-    	if(this.getTemporal().getHistoric().getStart() != null)
-    	{
-    		// Search for {CURRENT_YEAR}, edit string
-    		return this.getTemporal().getHistoric().getStart().atStartOfDay(ZoneId.of("Z")).toInstant();
-    	}
-    	// No historic data. Assuming forecasts from "today at midnight"
-    	else
-    	{
-    		return LocalDate.now().atStartOfDay(ZoneId.of("Z")).toInstant();
-    	}
+
+        if(this.getTemporal().getHistoric().getStart() != null)
+        {
+            // Search for {CURRENT_YEAR}, edit string
+            return this.getTemporal().getHistoric().getStart().atStartOfDay(ZoneId.of("Z")).toInstant();
+        }
+        // No historic data. Assuming forecasts from "today at midnight"
+        else
+        {
+            return LocalDate.now().atStartOfDay(ZoneId.of("Z")).toInstant();
+        }
     }
-    
+
     @JsonIgnore
     public Instant getTemporalEnd()
     {
-    	// If we have the historic end set, it's a completed timeseries
-    	if(this.getTemporal().getHistoric().getEnd() != null)
-    	{
-    		return this.getTemporal().getHistoric().getEnd().atStartOfDay(ZoneId.of("Z")).toInstant();
-    	}
-    	// Otherwise it's either contemporary measured data or forecasts
-    	else 
-    	{
-    		Integer daysAhead = Math.max(0, this.getTemporal().getForecast());
-    		return LocalDate.now().plusDays(daysAhead + 1).atStartOfDay(ZoneId.of("Z")).toInstant();
-    		
-    	}
+        // If we have the historic end set, it's a completed timeseries
+        if(this.getTemporal().getHistoric().getEnd() != null)
+        {
+            return this.getTemporal().getHistoric().getEnd().atStartOfDay(ZoneId.of("Z")).toInstant();
+        }
+        // Otherwise it's either contemporary measured data or forecasts
+        else
+        {
+            Integer daysAhead = Math.max(0, this.getTemporal().getForecast());
+            return LocalDate.now().plusDays(daysAhead + 1).atStartOfDay(ZoneId.of("Z")).toInstant();
+
+        }
     }
-    
+
     /**
      * A data class for identifying the Organization behind/responsible for the Weather data source
      */
@@ -242,22 +242,22 @@ public class WeatherDataSource implements Comparable {
         public void setUrl(String url) {
             this.url = url;
         }
-        
+
     }
-    
-    
+
+
     /**
-     * <p>Spatial is GEOJson defined. 
+     * <p>Spatial is GEOJson defined.
      * If the resource is a gridded service, the Spatial property is a polygon or a set of polygons
      * The polygons may be specified directly in the GeoJSON property, or it may be a referenced polygon
      * in the countries list. Open data sources exist, such as https://github.com/datasets/geo-countries
-     * If the resource is a FeatureCollection of points, this is a weather station network of between at 
+     * If the resource is a FeatureCollection of points, this is a weather station network of between at
      * least 1 and an indefinite number of stations.
      * </p>
      * <p>
-     * If you want to describe a spatial for a service that covers the entire globe, you can use this 
+     * If you want to describe a spatial for a service that covers the entire globe, you can use this
      * GeoJson: <code>{"type": "Sphere"}</code>. "Sphere" simply means the whole globe (this is NOT part of the GEOJson spec)
-     * 
+     *
      * </p>
      */
     public static class Spatial {
@@ -265,7 +265,7 @@ public class WeatherDataSource implements Comparable {
         private String geoJSON;
 
         /**
-         * @return Array of country codes that this service is valid for. 
+         * @return Array of country codes that this service is valid for.
          * https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes
          */
         @DocumentationExample(value="NOR", value2="SWE")
@@ -286,12 +286,12 @@ public class WeatherDataSource implements Comparable {
          * weather stations
          */
         @DocumentationExample(value = "{\n" +
-            "\"type\": \"FeatureCollection\",\n" +
-            "\"features\": [\n" +
-            "  {\"type\": \"Feature\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [8.68956,62.98474,5]}, \"properties\": {\"name\": \"Surnadal\", \"id\":\"46\",\"WMOCertified\": 5}},\n" +
-            "  {\"type\": \"Feature\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [5.60533332824707,59.0185012817383]}, \"properties\": {\"name\": \"Rygg\", \"id\":\"98\"}}"
-            + "]"
-            + "}", value2 = "{\"type\": \"Sphere\"}")
+                "\"type\": \"FeatureCollection\",\n" +
+                "\"features\": [\n" +
+                "  {\"type\": \"Feature\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [8.68956,62.98474,5]}, \"properties\": {\"name\": \"Surnadal\", \"id\":\"46\",\"WMOCertified\": 5}},\n" +
+                "  {\"type\": \"Feature\", \"geometry\": {\"type\": \"Point\", \"coordinates\": [5.60533332824707,59.0185012817383]}, \"properties\": {\"name\": \"Rygg\", \"id\":\"98\"}}"
+                + "]"
+                + "}", value2 = "{\"type\": \"Sphere\"}")
         public String getGeoJSON() {
             return geoJSON;
         }
@@ -303,23 +303,23 @@ public class WeatherDataSource implements Comparable {
             this.geoJSON = GeoJSON;
         }
     }
-    
+
     /**
      * Describes the period for which this data source can provide weather data
-     * 
+     *
      */
     public static class Temporal {
         public int forecast;
         public Historic historic;
         private Integer[] intervals;
-        
+
         /**
          * To what extent does this data source contain historic/measured data (as opposed to
          * forecasts)
          */
         @JsonDeserialize(using = WeatherDataSourceHistoricDeserializer.class)
         public static class Historic {
-            
+
             private LocalDate start, end;
 
             /**
@@ -360,7 +360,7 @@ public class WeatherDataSource implements Comparable {
         }
 
         /**
-         * @return The number of days ahead this data source provides weather 
+         * @return The number of days ahead this data source provides weather
          * forecasts. If 0, then this is not a weather forecast service
          */
         @DocumentationExample("0")
@@ -389,24 +389,24 @@ public class WeatherDataSource implements Comparable {
             this.historic = historic;
         }
 
-		/**
-		 * @return the intervals
-		 */
-		public Integer[] getIntervals() {
-			return intervals;
-		}
+        /**
+         * @return the intervals
+         */
+        public Integer[] getIntervals() {
+            return intervals;
+        }
 
-		/**
-		 * @param intervals the intervals to set
-		 */
-		public void setIntervals(Integer[] intervals) {
-			this.intervals = intervals;
-		}
+        /**
+         * @param intervals the intervals to set
+         */
+        public void setIntervals(Integer[] intervals) {
+            this.intervals = intervals;
+        }
     }
-    
+
     /**
      * A list of weather parameters that this weather data source provides.
-     * The parameters are given by their id. For lookup, see: 
+     * The parameters are given by their id. For lookup, see:
      * https://platform.ipmdecisions.net/weather/rest/parameter/list
      */
     public static class Parameters {
@@ -429,7 +429,7 @@ public class WeatherDataSource implements Comparable {
         }
 
         /**
-         * These parameters are available from some of the stations or some of 
+         * These parameters are available from some of the stations or some of
          * the locations in this service, but not guaranteed from everywhere
          * @return List of optional parameters
          */
@@ -444,18 +444,18 @@ public class WeatherDataSource implements Comparable {
         public void setOptional(int[] optional) {
             this.optional = optional;
         }
-    }            
+    }
 
     @DocumentationExample("no.met.locationforecast")
     public String getId() {
-		return id;
-	}
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	/**
+    /**
      * @return the name
      */
     @DocumentationExample("Agromet Norway")
@@ -507,15 +507,15 @@ public class WeatherDataSource implements Comparable {
     public String getEndpoint() {
         return endpoint;
     }
-    
+
     /**
      * Returns the enpoint, always with a full path
      * @return
      */
     public String getEndpointFullPath() {
-    	return this.getEndpoint().indexOf("{WEATHER_API_URL}") < 0 ?
-    			this.getEndpoint()
-    			: this.getEndpoint().replace("{WEATHER_API_URL}", SystemUtil.getWeatherAPIURL());
+        return this.getEndpoint().indexOf("{WEATHER_API_URL}") < 0 ?
+                this.getEndpoint()
+                : this.getEndpoint().replace("{WEATHER_API_URL}", SystemUtil.getWeatherAPIURL());
     }
 
     /**
@@ -558,7 +558,7 @@ public class WeatherDataSource implements Comparable {
     /**
      * @return the spatial
      */
-        public Spatial getSpatial() {
+    public Spatial getSpatial() {
         return spatial;
     }
 
@@ -613,215 +613,224 @@ public class WeatherDataSource implements Comparable {
 
     /**
      * <p>
-     * The default value is "NONE". 
+     * The default value is "NONE".
      * </p>
      * @return the authentication_required
      * @DocumentationExample("NONE")
      */
     public String getAuthentication_type() {
-    	return this.authentication_type != null ? this.authentication_type : WeatherDataSource.AUTHENTICATION_TYPE_NONE;
+        return this.authentication_type != null ? this.authentication_type : WeatherDataSource.AUTHENTICATION_TYPE_NONE;
     }
-    
+
     public void setAuthentication_type(String authentication_type)
     {
-    	if(!this.authenticationTypes.contains(authentication_type))
-    	{
-    		throw new IllegalArgumentException("Authentication type must be one of [" + String.join(",", authenticationTypes) + "]");
-    	}
-    	this.authentication_type = authentication_type;
+        if(!this.authenticationTypes.contains(authentication_type))
+        {
+            throw new IllegalArgumentException("Authentication type must be one of [" + String.join(",", authenticationTypes) + "]");
+        }
+        this.authentication_type = authentication_type;
     }
 
-	/**
-	 * @return the priority
-	 */
-	public Integer getPriority() {
-		return priority;
-	}
+    /**
+     * @return the priority
+     */
+    public Integer getPriority() {
+        return priority;
+    }
 
-	/**
-	 * @param priority the priority to set
-	 */
-	public void setPriority(Integer priority) {
-		this.priority = priority;
-	}
+    /**
+     * @param priority the priority to set
+     */
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
 
-	@Override
-	public int compareTo(Object other) {
-		return this.getPriority().compareTo(((WeatherDataSource) other).getPriority());
-	}
-	
-	/**
-	 * 
-	 * @return the station id of the weather station closest to the given location (WGS84 decimal degrees)
-	 */
-	@JsonIgnore
-	public String getIdOfClosestStation(Double longitude, Double latitude)
-	{
-		if(!this.getAccess_type().equals(WeatherDataSource.ACCESS_TYPE_STATIONS))
-		{
-			return null;
-		}
-		
-		GeoJSONReader reader = new GeoJSONReader();
-    	GISUtils gisUtils = new GISUtils();
-    			
-		try
+    @Override
+    public int compareTo(Object other) {
+        return this.getPriority().compareTo(((WeatherDataSource) other).getPriority());
+    }
+
+    /**
+     *
+     * @return the station id of the weather station closest to the given location (WGS84 decimal degrees)
+     */
+    @JsonIgnore
+    public String getIdOfClosestStation(Double longitude, Double latitude)
+    {
+        if(!this.getAccess_type().equals(WeatherDataSource.ACCESS_TYPE_STATIONS))
         {
-			Feature closestFeature = null;
-			Point p = new GeometryFactory(new PrecisionModel(), 4326).createPoint(new Coordinate(longitude,latitude));
-        	List<Feature> dataSourceFeatures = Arrays.asList(
-    				((FeatureCollection) GeoJSONFactory.create(this.getSpatial().getGeoJSON())).getFeatures()
-    			);
-        	for(Feature currentFeature:dataSourceFeatures)
-        	{
-        		if(closestFeature == null || gisUtils.getDistanceInMetersWGS84(reader.read(currentFeature.getGeometry()).distance(p)) < gisUtils.getDistanceInMetersWGS84(reader.read(closestFeature.getGeometry()).distance(p)))
-        		{
-        			closestFeature = currentFeature;
-        		}
-        	}
-        	LOGGER.debug("Found closest station: " + (String) closestFeature.getProperties().get("name"));
-        	//return (String) closestFeature.getProperties().get("id");
-        	return (String) new ObjectMapper().writeValueAsString(closestFeature.getId());
+            return null;
+        }
+
+        GeoJSONReader reader = new GeoJSONReader();
+        GISUtils gisUtils = new GISUtils();
+
+        try
+        {
+            Feature closestFeature = null;
+            Point p = new GeometryFactory(new PrecisionModel(), 4326).createPoint(new Coordinate(longitude,latitude));
+            List<Feature> dataSourceFeatures = Arrays.asList(
+                    ((FeatureCollection) GeoJSONFactory.create(this.getSpatial().getGeoJSON())).getFeatures()
+            );
+            for(Feature currentFeature:dataSourceFeatures)
+            {
+                if(closestFeature == null || gisUtils.getDistanceInMetersWGS84(reader.read(currentFeature.getGeometry()).distance(p)) < gisUtils.getDistanceInMetersWGS84(reader.read(closestFeature.getGeometry()).distance(p)))
+                {
+                    closestFeature = currentFeature;
+                }
+            }
+            LOGGER.debug("Found closest station: " + (String) closestFeature.getProperties().get("name"));
+            //return (String) closestFeature.getProperties().get("id");
+            return (String) new ObjectMapper().writeValueAsString(closestFeature.getId());
         }
         catch(NullPointerException | JsonProcessingException ex)
-        { 
-        	LOGGER.debug(ex.getMessage());
-        	return null; 
+        {
+            LOGGER.debug(ex.getMessage());
+            return null;
         }
-	}
-	
-	/**
-	 * Get distance in meters between a station and a location
-	 * @param stationId
-	 * @param longitude
-	 * @param latitude
-	 * @return
-	 */
-	@JsonIgnore
-	public Double getDistanceToStation(String stationId, Double longitude, Double latitude)
-	{
-		if(this.getAccess_type().equals("stations") && !this.getSpatial().getGeoJSON().isBlank())
-		{
-			Feature stationFeature = this.getStation(stationId);
-			if(stationFeature == null)
-			{
-				return null;
-			}
-			GeoJSONReader reader = new GeoJSONReader();
-			Geometry stationPoint = reader.read(stationFeature.getGeometry());
-			GISUtils gisUtils = new GISUtils();
-	        Point locationPoint = new GeometryFactory(new PrecisionModel(), 4326).createPoint(new Coordinate(longitude,latitude));
-			return gisUtils.getDistanceInMetersWGS84(stationPoint.distance(locationPoint));
-		}
-		else
-		{
-			LOGGER.debug("This data source(" + this.getName() + ") is not station based, so no additional parameters can be added.");
-			return null;
-		}
-	}
-	
-	/**
-	 * 
-	 * @param stationId
-	 * @return
-	 */
-	public Feature getStation(String stationId)
-	{
-		for(Feature stationFeature: this.getStationsGeometries()) {
-                String featureId = stationFeature.getId().toString().replaceAll("^\"|\"$", "");
-                if(featureId.equals(stationId))
-        		{
-        			return stationFeature;
-        		}
-		}
-		return null;
-	}
-	
-	/**
-	 * If you already know the stationId, get its additional weather parameters. ONLY applicable to station based weather data sources
-	 * @param stationId
-	 * @return
-	 */
-	@JsonIgnore
-	public List<Integer> getAdditionalParametersForStation(String stationId)
-	{
-		if(this.getAccess_type().equals("stations") && !this.getSpatial().getGeoJSON().isBlank())
-		{
-			Feature stationFeature = this.getStation(stationId);
-			return stationFeature != null && (List<Integer>) stationFeature.getProperties().get("additionalParameters") != null? 
-					(List<Integer>) stationFeature.getProperties().get("additionalParameters") 
-					: new ArrayList<>();
-		}
-		else
-		{
-			LOGGER.debug("This data source(" + this.getName() + ") is not station based, so no additional parameters can be added.");
-			return new ArrayList<>();
-		}
-	}
-	
-	/**
-	 * Currently only applicable to station based data sources
-	 * @return List of parameter codes that this location provides in addition to the "common" ones
-	 */
-	@JsonIgnore
-	public List<Integer> getAdditionalParametersForLocation(List<Geometry> clientGeometries, Double toleranceInput)
-	{
-		if(this.getAccess_type().equals("stations") && !this.getSpatial().getGeoJSON().isBlank())
-		{
-			LOGGER.debug("This data source(" + this.getName() + ") is station based.");
-			GeoJSONReader reader = new GeoJSONReader();
-			GISUtils gisUtils = new GISUtils();
-			return this.getStationsGeometries().stream()
-		            .filter(stationFeature->{
-		            	Geometry stationGeometry = reader.read(stationFeature.getGeometry());
-		                Boolean matching = false;
-		                for(Geometry clientGeometry: clientGeometries)
-		                {
-		                    if(stationGeometry.intersects(clientGeometry) || gisUtils.getDistanceInMetersWGS84(stationGeometry.distance(clientGeometry)) <= toleranceInput)
-		                    {
-		                        //System.out.println("Distance: " + gisUtils.getDistanceInMetersWGS84(dataSourceGeometry.distance(clientGeometry)));
-		                        matching = true;
-		                        LOGGER.debug("This station(" + stationFeature.getId() + ") matches the provided location.");
-		                    }
-		                }
-		                return matching;
-		            })
-		            .flatMap(matchingStationFeature-> ((List<Integer>)matchingStationFeature.getProperties().get("additionalParameters")).stream())
-		            .collect(Collectors.toList());
-		}
-		else
-		{
-			LOGGER.debug("This data source(" + this.getName() + ") is not station based, so no additional parameters can be added.");
-			return null;
-		}
-	}
-	
-	@JsonIgnore
-	public List<Feature> getStationsGeometries()
-	{
-		if(this.getAccess_type().equals("stations") && !this.getSpatial().getGeoJSON().isBlank())
-		{
-			return Arrays.asList(
-			((FeatureCollection) GeoJSONFactory.create(this.getSpatial().getGeoJSON())).getFeatures()
-			);
-		}
-		else
-		{
-			return null;
-		}
-	}
+    }
 
-	/**
-	 * @return the active
-	 */
-	public Boolean getActive() {
-		return this.active != null ? this.active : Boolean.TRUE;
-	}
+    /**
+     * Get distance in meters between a station and a location
+     * @param stationId
+     * @param longitude
+     * @param latitude
+     * @return
+     */
+    @JsonIgnore
+    public Double getDistanceToStation(String stationId, Double longitude, Double latitude)
+    {
+        if(this.getAccess_type().equals("stations") && !this.getSpatial().getGeoJSON().isBlank())
+        {
+            Feature stationFeature = this.getStation(stationId);
+            if(stationFeature == null)
+            {
+                return null;
+            }
+            GeoJSONReader reader = new GeoJSONReader();
+            Geometry stationPoint = reader.read(stationFeature.getGeometry());
+            GISUtils gisUtils = new GISUtils();
+            Point locationPoint = new GeometryFactory(new PrecisionModel(), 4326).createPoint(new Coordinate(longitude,latitude));
+            return gisUtils.getDistanceInMetersWGS84(stationPoint.distance(locationPoint));
+        }
+        else
+        {
+            LOGGER.debug("This data source(" + this.getName() + ") is not station based, so no additional parameters can be added.");
+            return null;
+        }
+    }
 
-	/**
-	 * @param active the active to set
-	 */
-	public void setActive(Boolean active) {
-		this.active = active;
-	}
+    /**
+     *
+     * @param stationId
+     * @return
+     */
+    public Feature getStation(String stationId)
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        for(Feature stationFeature: this.getStationsGeometries()) {
+            try
+            {
+                String stationFeatureId = objectMapper.writeValueAsString(stationFeature.getId());
+                stationFeatureId = stationFeatureId.replaceAll("^\"|\"$", "");
+                if(stationFeatureId.equals(stationId)) {
+                    return stationFeature;
+                }
+            }
+            catch(JsonProcessingException ex)
+            {
+                LOGGER.error(ex.getMessage());
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * If you already know the stationId, get its additional weather parameters. ONLY applicable to station based weather data sources
+     * @param stationId
+     * @return
+     */
+    @JsonIgnore
+    public List<Integer> getAdditionalParametersForStation(String stationId)
+    {
+        if(this.getAccess_type().equals("stations") && this.getSpatial().getGeoJSON() != null && !this.getSpatial().getGeoJSON().isBlank())
+        {
+            Feature stationFeature = this.getStation(stationId);
+            return stationFeature != null && (List<Integer>) stationFeature.getProperties().get("additionalParameters") != null?
+                    (List<Integer>) stationFeature.getProperties().get("additionalParameters")
+                    : new ArrayList<>();
+        }
+        else
+        {
+            LOGGER.debug("This data source(" + this.getName() + ") is either not station based OR it has no specific station info, so no additional parameters can be added.");
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Currently only applicable to station based data sources
+     * @return List of parameter codes that this location provides in addition to the "common" ones
+     */
+    @JsonIgnore
+    public List<Integer> getAdditionalParametersForLocation(List<Geometry> clientGeometries, Double toleranceInput)
+    {
+        if(this.getAccess_type().equals("stations") && !this.getSpatial().getGeoJSON().isBlank())
+        {
+            LOGGER.debug("This data source(" + this.getName() + ") is station based.");
+            GeoJSONReader reader = new GeoJSONReader();
+            GISUtils gisUtils = new GISUtils();
+            return this.getStationsGeometries().stream()
+                    .filter(stationFeature->{
+                        Geometry stationGeometry = reader.read(stationFeature.getGeometry());
+                        Boolean matching = false;
+                        for(Geometry clientGeometry: clientGeometries)
+                        {
+                            if(stationGeometry.intersects(clientGeometry) || gisUtils.getDistanceInMetersWGS84(stationGeometry.distance(clientGeometry)) <= toleranceInput)
+                            {
+                                //System.out.println("Distance: " + gisUtils.getDistanceInMetersWGS84(dataSourceGeometry.distance(clientGeometry)));
+                                matching = true;
+                                LOGGER.debug("This station(" + stationFeature.getId() + ") matches the provided location.");
+                            }
+                        }
+                        return matching;
+                    })
+                    .flatMap(matchingStationFeature-> ((List<Integer>)matchingStationFeature.getProperties().get("additionalParameters")).stream())
+                    .collect(Collectors.toList());
+        }
+        else
+        {
+            LOGGER.debug("This data source(" + this.getName() + ") is not station based, so no additional parameters can be added.");
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public List<Feature> getStationsGeometries()
+    {
+        if(this.getAccess_type().equals("stations") && !this.getSpatial().getGeoJSON().isBlank())
+        {
+            return Arrays.asList(
+                    ((FeatureCollection) GeoJSONFactory.create(this.getSpatial().getGeoJSON())).getFeatures()
+            );
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /**
+     * @return the active
+     */
+    public Boolean getActive() {
+        return this.active != null ? this.active : Boolean.TRUE;
+    }
+
+    /**
+     * @param active the active to set
+     */
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
 }

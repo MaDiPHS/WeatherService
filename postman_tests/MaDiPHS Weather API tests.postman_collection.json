@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "30717fdd-dfb9-49a7-8e53-7c6cd6d41120",
-		"name": "MaDiPHS Weather API tests ORIGINAL",
-		"description": "This is the test suite for the IPM Decisions Weather API",
+		"_postman_id": "47a79b30-dde5-48f7-8fda-9862302f46b5",
+		"name": "MaDiPHS Weather API tests",
+		"description": "This is the test suite for the MaDiPHS Weather API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "3222856"
 	},
@@ -33,9 +33,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/parameter",
+							"raw": "{{madiphs_weather_url}}/rest/parameter",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -79,9 +79,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/qc",
+							"raw": "{{madiphs_weather_url}}/rest/qc",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -125,9 +125,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamationType",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamationType",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -161,9 +161,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/schema/weatherdata",
+							"raw": "{{madiphs_weather_url}}/rest/schema/weatherdata",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -207,9 +207,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/schema/weatherdata/validate",
+							"raw": "{{madiphs_weather_url}}/rest/schema/weatherdata/validate",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -227,238 +227,6 @@
 			"name": "WeatherAdapterService",
 			"item": [
 				{
-					"name": "FruitWeb/Davis",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
-									"        pm.test(\"Data is valid WeatherData\", function(){",
-									"        var schema = res.json();",
-									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
-									"    });",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "weatherStationId",
-									"value": "536",
-									"type": "text"
-								},
-								{
-									"key": "interval",
-									"value": "3600",
-									"type": "text"
-								},
-								{
-									"key": "ignoreErrors",
-									"value": "true",
-									"type": "text"
-								},
-								{
-									"key": "timeStart",
-									"value": "2022-01-02",
-									"type": "text"
-								},
-								{
-									"key": "timeEnd",
-									"value": "2022-01-10",
-									"type": "text"
-								},
-								{
-									"key": "parameters",
-									"value": "1002,3002",
-									"type": "text"
-								},
-								{
-									"key": "credentials",
-									"value": "{\"userName\":\"\",\"password\":\"GF90esoleo\"}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/davisfruitweb",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatheradapter",
-								"davisfruitweb"
-							],
-							"query": [
-								{
-									"key": "weatherStationId",
-									"value": "18150029",
-									"disabled": true
-								},
-								{
-									"key": "interval",
-									"value": "3600",
-									"disabled": true
-								},
-								{
-									"key": "ignoreErrors",
-									"value": "true",
-									"disabled": true
-								},
-								{
-									"key": "timeStart",
-									"value": "2022-01-02",
-									"disabled": true
-								},
-								{
-									"key": "timeEnd",
-									"value": "2022-01-10",
-									"disabled": true
-								},
-								{
-									"key": "parameters",
-									"value": "1002,3002",
-									"disabled": true
-								},
-								{
-									"key": "credentials",
-									"value": "{\"username\":\"536\",\"password\":\"GF90esoleo\"}",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "MeteoBot",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
-									"        pm.test(\"Data is valid WeatherData\", function(){",
-									"        var schema = res.json();",
-									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
-									"    });",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "weatherStationId",
-									"value": "18150029",
-									"type": "text"
-								},
-								{
-									"key": "interval",
-									"value": "3600",
-									"type": "text"
-								},
-								{
-									"key": "ignoreErrors",
-									"value": "true",
-									"type": "text"
-								},
-								{
-									"key": "timeStart",
-									"value": "2020-06-12",
-									"type": "text"
-								},
-								{
-									"key": "timeEnd",
-									"value": "2020-07-03",
-									"type": "text"
-								},
-								{
-									"key": "parameters",
-									"value": "1002,3002",
-									"type": "text"
-								},
-								{
-									"key": "credentials",
-									"value": "{\"userName\":\"3138313530303239\",\"password\":\"Y3Nw_48aNe4y1Z0Wj\"}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/meteobot",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatheradapter",
-								"meteobot"
-							],
-							"query": [
-								{
-									"key": "weatherStationId",
-									"value": "18150029",
-									"disabled": true
-								},
-								{
-									"key": "interval",
-									"value": "3600",
-									"disabled": true
-								},
-								{
-									"key": "ignoreErrors",
-									"value": "true",
-									"disabled": true
-								},
-								{
-									"key": "timeStart",
-									"value": "2020-06-12",
-									"disabled": true
-								},
-								{
-									"key": "timeEnd",
-									"value": "2020-07-03",
-									"disabled": true
-								},
-								{
-									"key": "parameters",
-									"value": "1002,3002",
-									"disabled": true
-								},
-								{
-									"key": "credentials",
-									"value": "{\"username\":\"3138313530303239\",\"password\":\"Y3Nw_48aNe4y1Z0Wj\"}",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Tahmo",
 					"event": [
 						{
@@ -469,7 +237,7 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"        pm.test(\"Data is valid WeatherData\", function(){",
 									"        var schema = res.json();",
 									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
@@ -524,204 +292,14 @@
 							]
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/tahmo",
+							"raw": "{{madiphs_weather_url}}/rest/weatheradapter/tahmo",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
 								"weatheradapter",
 								"tahmo"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Metos (FieldClimate)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 201 or 204 (no data)\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([201,204]);",
-									"});",
-									"",
-									"if(pm.response.code == 200)",
-									"{",
-									"    pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
-									"        pm.test(\"Data is valid WeatherData\", function(){",
-									"            var schema = res.json();",
-									"            pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
-									"        });",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
-								{
-									"key": "weatherStationId",
-									"value": "000012DE",
-									"type": "text"
-								},
-								{
-									"key": "interval",
-									"value": "3600",
-									"type": "text"
-								},
-								{
-									"key": "ignoreErrors",
-									"value": "true",
-									"type": "text"
-								},
-								{
-									"key": "timeStart",
-									"value": "2020-06-12",
-									"type": "text"
-								},
-								{
-									"key": "timeEnd",
-									"value": "2020-07-03",
-									"type": "text"
-								},
-								{
-									"key": "parameters",
-									"value": "1002,3002",
-									"type": "text"
-								},
-								{
-									"key": "credentials",
-									"value": "{\"userName\":\"c511e7d5ddcafe7d49941a016d897f2425c852cba7436cc3\",\"password\":\"3fda3e0ce8c6c768d48b80ace10e544ab282b3965345d81e\"}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/metos",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatheradapter",
-								"metos"
-							],
-							"query": [
-								{
-									"key": "weatherStationId",
-									"value": "18150029",
-									"disabled": true
-								},
-								{
-									"key": "interval",
-									"value": "3600",
-									"disabled": true
-								},
-								{
-									"key": "ignoreErrors",
-									"value": "true",
-									"disabled": true
-								},
-								{
-									"key": "timeStart",
-									"value": "2020-06-12",
-									"disabled": true
-								},
-								{
-									"key": "timeEnd",
-									"value": "2020-07-03",
-									"disabled": true
-								},
-								{
-									"key": "parameters",
-									"value": "1002,3002",
-									"disabled": true
-								},
-								{
-									"key": "credentials",
-									"value": "{\"username\":\"3138313530303239\",\"password\":\"Y3Nw_48aNe4y1Z0Wj\"}",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "FMI (Finnish Meteorological Service)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
-									"    pm.test(\"Data is valid WeatherData\", function(){",
-									"    ",
-									"        var schema = res.json();",
-									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
-									"    });",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/fmi?weatherStationId=101104&interval=3600&ignoreErrors=true&timeStart=2020-06-12&timeEnd=2020-07-03&parameters=1002,3002",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatheradapter",
-								"fmi"
-							],
-							"query": [
-								{
-									"key": "weatherStationId",
-									"value": "101104"
-								},
-								{
-									"key": "interval",
-									"value": "3600"
-								},
-								{
-									"key": "ignoreErrors",
-									"value": "true"
-								},
-								{
-									"key": "timeStart",
-									"value": "2020-06-12"
-								},
-								{
-									"key": "timeEnd",
-									"value": "2020-07-03"
-								},
-								{
-									"key": "parameters",
-									"value": "1002,3002"
-								},
-								{
-									"key": "credentials",
-									"value": "{\"username\":\"3138313530303239\",\"password\":\"Y3Nw_48aNe4y1Z0Wj\"}",
-									"disabled": true
-								}
 							]
 						}
 					},
@@ -738,7 +316,7 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"    pm.test(\"Data is valid WeatherData\", function(){",
 									"",
 									"        var schema = res.json();",
@@ -761,9 +339,9 @@
 							"urlencoded": []
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/yr/?longitude=10.961&latitude=50.109&parameters=1001, 3001",
+							"raw": "{{madiphs_weather_url}}/rest/weatheradapter/yr/?longitude=10.961&latitude=50.109&parameters=1001, 3001",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -790,7 +368,7 @@
 					"response": []
 				},
 				{
-					"name": "Met Ireland forecasts",
+					"name": "Open-Meteo hourly data",
 					"event": [
 						{
 							"listen": "test",
@@ -800,13 +378,31 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"    pm.test(\"Data is valid WeatherData\", function(){",
-									"",
 									"        var schema = res.json();",
 									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
 									"    });",
+									"    ",
+									"});",
+									"",
+									"pm.test(\"Data has correct length\", function(){",
+									"    let weatherdata = pm.response.json();",
+									"    pm.expect(weatherdata.locationWeatherData[0].length).to.eql(168);",
 									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"var timeStart =moment().add(-3,'days').format('YYYY-MM-DD'); ",
+									"var timeEnd = moment().add(3,'days').format('YYYY-MM-DD');",
+									"pm.request.url.query.add({key: 'timeStart', value: timeStart});",
+									"pm.request.url.query.add({key: 'timeEnd', value: timeEnd});"
 								],
 								"type": "text/javascript"
 							}
@@ -823,145 +419,23 @@
 							"urlencoded": []
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/meteireann/?longitude=-7.644361&latitude=52.597709&parameters=1001, 3001",
+							"raw": "{{madiphs_weather_url}}/rest/weatheradapter/openmeteo?longitude=17.3907&latitude=59.7156&interval=3600&ignoreErrors=true",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
 								"weatheradapter",
-								"meteireann",
-								""
+								"openmeteo"
 							],
 							"query": [
 								{
 									"key": "longitude",
-									"value": "-7.644361"
+									"value": "17.3907"
 								},
 								{
 									"key": "latitude",
-									"value": "52.597709"
-								},
-								{
-									"key": "parameters",
-									"value": "1001, 3001"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "FMI (Finnish Meteorological Service) forecasts",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
-									"    pm.test(\"Data is valid WeatherData\", function(){",
-									"        var schema = res.json();",
-									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
-									"    });",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": []
-						},
-						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/fmi/forecasts?latitude=67.2828&longitude=14.3711&parameters=2001",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatheradapter",
-								"fmi",
-								"forecasts"
-							],
-							"query": [
-								{
-									"key": "latitude",
-									"value": "67.2828"
-								},
-								{
-									"key": "longitude",
-									"value": "14.3711"
-								},
-								{
-									"key": "parameters",
-									"value": "2001"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "DMI (Danish Meteorological Service) PointWeb GRID",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
-									"    pm.test(\"Data is valid WeatherData\", function(){",
-									"        var schema = res.json();",
-									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
-									"    });",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "urlencoded",
-							"urlencoded": []
-						},
-						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/dmipoint?longitude=9.201049804687502&latitude=56.32670304556049&interval=3600&ignoreErrors=true&timeStart=2021-03-01&timeEnd=2022-04-06&parameters=2001,3002,3101",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatheradapter",
-								"dmipoint"
-							],
-							"query": [
-								{
-									"key": "longitude",
-									"value": "9.201049804687502"
-								},
-								{
-									"key": "latitude",
-									"value": "56.32670304556049"
+									"value": "59.7156"
 								},
 								{
 									"key": "interval",
@@ -973,15 +447,20 @@
 								},
 								{
 									"key": "timeStart",
-									"value": "2021-03-01"
+									"value": "2023-04-01",
+									"description": "See pre-request script",
+									"disabled": true
 								},
 								{
 									"key": "timeEnd",
-									"value": "2022-04-06"
+									"value": "",
+									"description": "See pre-request script",
+									"disabled": true
 								},
 								{
 									"key": "parameters",
-									"value": "2001,3002,3101"
+									"value": "3101,3002,2001",
+									"disabled": true
 								}
 							]
 						}
@@ -989,7 +468,7 @@
 					"response": []
 				},
 				{
-					"name": "SLU Lantmet (Sweden) GRID",
+					"name": "Open-Meteo daily data",
 					"event": [
 						{
 							"listen": "test",
@@ -999,12 +478,31 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"    pm.test(\"Data is valid WeatherData\", function(){",
 									"        var schema = res.json();",
 									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
 									"    });",
+									"    ",
+									"});",
+									"",
+									"pm.test(\"Data has correct length\", function(){",
+									"    let weatherdata = pm.response.json();",
+									"    pm.expect(weatherdata.locationWeatherData[0].length).to.eql(7);",
 									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');",
+									"var timeStart =moment().add(-3,'days').format('YYYY-MM-DD'); ",
+									"var timeEnd = moment().add(3,'days').format('YYYY-MM-DD');",
+									"pm.request.url.query.add({key: 'timeStart', value: timeStart});",
+									"pm.request.url.query.add({key: 'timeEnd', value: timeEnd});"
 								],
 								"type": "text/javascript"
 							}
@@ -1021,39 +519,48 @@
 							"urlencoded": []
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/lantmet?latitude=55.752&longitude=13.039&parameters=2001,1002,3002,3101&timeStart=2021-10-01&timeEnd=2021-10-10&interval=3600",
+							"raw": "{{madiphs_weather_url}}/rest/weatheradapter/openmeteo?longitude=17.3907&latitude=59.7156&interval=86400&ignoreErrors=true",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
 								"weatheradapter",
-								"lantmet"
+								"openmeteo"
 							],
 							"query": [
 								{
-									"key": "latitude",
-									"value": "55.752"
-								},
-								{
 									"key": "longitude",
-									"value": "13.039"
+									"value": "17.3907"
 								},
 								{
-									"key": "parameters",
-									"value": "2001,1002,3002,3101"
-								},
-								{
-									"key": "timeStart",
-									"value": "2021-10-01"
-								},
-								{
-									"key": "timeEnd",
-									"value": "2021-10-10"
+									"key": "latitude",
+									"value": "59.7156"
 								},
 								{
 									"key": "interval",
-									"value": "3600"
+									"value": "86400"
+								},
+								{
+									"key": "ignoreErrors",
+									"value": "true"
+								},
+								{
+									"key": "timeStart",
+									"value": "2023-04-01",
+									"description": "See pre-request script",
+									"disabled": true
+								},
+								{
+									"key": "timeEnd",
+									"value": "",
+									"description": "See pre-request script",
+									"disabled": true
+								},
+								{
+									"key": "parameters",
+									"value": "3101,3002,2001",
+									"disabled": true
 								}
 							]
 						}
@@ -1097,9 +604,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{madiphs_wx_url}}/rest/weatherdatasource",
+							"raw": "{{madiphs_weather_url}}/rest/weatherdatasource",
 							"host": [
-								"{{madiphs_wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1138,9 +645,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource/no.met.locationforecast",
+							"raw": "{{madiphs_weather_url}}/rest/weatherdatasource/no.met.locationforecast",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1172,9 +679,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource/foo.bar",
+							"raw": "{{madiphs_weather_url}}/rest/weatherdatasource/foo.bar",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1218,9 +725,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource",
+							"raw": "{{madiphs_weather_url}}/rest/weatherdatasource",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1262,9 +769,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource/location/point/?latitude=59.678835236960765&longitude=12.01629638671875",
+							"raw": "{{madiphs_weather_url}}/rest/weatherdatasource/location/point/?latitude=59.678835236960765&longitude=12.01629638671875",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1311,9 +818,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/weatherparameter/location/point/?latitude=59.660468&longitude=10.781989",
+							"raw": "{{madiphs_weather_url}}/rest/weatherparameter/location/point/?latitude=59.660468&longitude=10.781989",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1330,120 +837,6 @@
 								{
 									"key": "longitude",
 									"value": "10.781989"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get weather data sources for simple point in Denmark",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"DMI Pointweather service can be found\", function(){",
-									"    var dataSourceList = pm.response.json();",
-									"    var locationForecastFound = false;",
-									"    for(var i=0;i<dataSourceList.length;i++)",
-									"    {",
-									"        if(dataSourceList[i].name == \"DMI Pointweather service\")",
-									"        {",
-									"            locationForecastFound = true;",
-									"        }",
-									"    }",
-									"    pm.expect(locationForecastFound).to.be.true;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource/location/point/?latitude=56.488&longitude=9.583",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatherdatasource",
-								"location",
-								"point",
-								""
-							],
-							"query": [
-								{
-									"key": "latitude",
-									"value": "56.488"
-								},
-								{
-									"key": "longitude",
-									"value": "9.583"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get weather data sources for simple point in Ireland",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Met Eireann locationforecast service can be found\", function(){",
-									"    var dataSourceList = pm.response.json();",
-									"    var locationForecastFound = false;",
-									"    for(var i=0;i<dataSourceList.length;i++)",
-									"    {",
-									"        if(dataSourceList[i].name == \"Met Éireann Locationforecast\")",
-									"        {",
-									"            locationForecastFound = true;",
-									"        }",
-									"    }",
-									"    pm.expect(locationForecastFound).to.be.true;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource/location/point/?latitude=52.597709&longitude=-7.644361",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"weatherdatasource",
-								"location",
-								"point",
-								""
-							],
-							"query": [
-								{
-									"key": "latitude",
-									"value": "52.597709"
-								},
-								{
-									"key": "longitude",
-									"value": "-7.644361"
 								}
 							]
 						}
@@ -1491,9 +884,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatherdatasource/location",
+							"raw": "{{madiphs_weather_url}}/rest/weatherdatasource/location",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1545,9 +938,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate/proxy?endpointURL=http%3A%2F%2Flocalhost:8080%2FWeatherService%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature&endpointQueryStr=longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate/proxy?endpointQueryStr=longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001&endpointURL={{madiphs_weather_url}}%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1577,10 +970,6 @@
 									"disabled": true
 								},
 								{
-									"key": "endpointURL",
-									"value": "http%3A%2F%2Flocalhost:8080%2FWeatherService%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature"
-								},
-								{
 									"key": "endpointQueryStr",
 									"value": "longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001%2C3099",
 									"disabled": true
@@ -1588,6 +977,10 @@
 								{
 									"key": "endpointQueryStr",
 									"value": "longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001"
+								},
+								{
+									"key": "endpointURL",
+									"value": "{{madiphs_weather_url}}%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature"
 								}
 							]
 						}
@@ -1614,9 +1007,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate/proxy?endpointURL=https%3A%2F%2Feuroweather.ipmdecisions.nibio.no%2Fweather_data&endpointQueryStr=longitude%3D10.961%26latitude%3D60.109%26interval%3D86400%26timeStart%3D2022-01-01%26timeEnd%3D2022-01-13%26ignoreErrors%3Dtrue%26parameters%3D1001%2C3002%2C2001%2C4012",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate/proxy?endpointURL=https%3A%2F%2Feuroweather.ipmdecisions.nibio.no%2Fweather_data&endpointQueryStr=longitude%3D10.961%26latitude%3D60.109%26interval%3D86400%26timeStart%3D2022-01-01%26timeEnd%3D2022-01-13%26ignoreErrors%3Dtrue%26parameters%3D1001%2C3002%2C2001%2C4012",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1681,9 +1074,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/interpolate?maxMissingValues=3&paramsToInterpolate=1002",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/interpolate?maxMissingValues=3&paramsToInterpolate=1002",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1710,9 +1103,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=13.039&latitude=55.752&timeStart=2021-12-31&timeEnd=2022-01-30&interval=3600&parameters=2001,1002,3002,3101",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=13.039&latitude=55.752&timeStart=2021-12-31&timeEnd=2022-01-30&interval=3600&parameters=2001,1002,3002,3101",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1750,72 +1143,14 @@
 					"response": []
 				},
 				{
-					"name": "Amalgamation test MeteoConcept (with bearer token)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=-3.11369&latitude=48.3939&timeStart=2022-01-01&timeEnd=2022-01-31&interval=3600&parameters=2001,1002,3002,3101",
-							"host": [
-								"{{wx_url}}"
-							],
-							"path": [
-								"rest",
-								"amalgamation",
-								"amalgamate"
-							],
-							"query": [
-								{
-									"key": "longitude",
-									"value": "-3.11369"
-								},
-								{
-									"key": "latitude",
-									"value": "48.3939"
-								},
-								{
-									"key": "timeStart",
-									"value": "2022-01-01"
-								},
-								{
-									"key": "timeEnd",
-									"value": "2022-01-31"
-								},
-								{
-									"key": "interval",
-									"value": "3600"
-								},
-								{
-									"key": "parameters",
-									"value": "2001,1002,3002,3101"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Amalgamation date logic",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=8.4629&latitude=60.472&interval=3600&ignoreErrors=true&timeStart=2021-10-23&timeEnd=2022-05-01&parameters=1001",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=8.4629&latitude=60.472&interval=3600&ignoreErrors=true&timeStart=2021-10-23&timeEnd=2022-05-01&parameters=1001",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1887,9 +1222,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=10.961&latitude=56.109&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=1002",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=10.961&latitude=56.109&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=1002",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -1957,9 +1292,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=52.58547&timeStart=2022-01-01&timeEnd=2022-01-23&interval=86400&parameters=1002,1003,1004",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=52.58547&timeStart=2022-01-01&timeEnd=2022-01-23&interval=86400&parameters=1002,1003,1004",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -2027,9 +1362,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=52.58547&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=1002,1003,1004",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=52.58547&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=1002,1003,1004",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -2097,9 +1432,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=10.961&latitude=56.109&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=3101",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=10.961&latitude=56.109&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=3101",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -2142,9 +1477,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=52.58547&interval=86400&timeStart=2022-01-01&timeEnd=2022-02-01&parameters=1002",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=52.58547&interval=86400&timeStart=2022-01-01&timeEnd=2022-02-01&parameters=1002",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -2187,9 +1522,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=29.58547&interval=86400&timeStart=2021-11-27&timeEnd=2021-12-01&parameters=1002",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=-2.12296&latitude=29.58547&interval=86400&timeStart=2021-11-27&timeEnd=2021-12-01&parameters=1002",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
