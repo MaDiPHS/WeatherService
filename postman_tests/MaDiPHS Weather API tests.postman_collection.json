@@ -237,7 +237,7 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"        pm.test(\"Data is valid WeatherData\", function(){",
 									"        var schema = res.json();",
 									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
@@ -316,7 +316,7 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"    pm.test(\"Data is valid WeatherData\", function(){",
 									"",
 									"        var schema = res.json();",
@@ -378,7 +378,7 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"    pm.test(\"Data is valid WeatherData\", function(){",
 									"        var schema = res.json();",
 									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
@@ -419,9 +419,9 @@
 							"urlencoded": []
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/openmeteo?longitude=17.3907&latitude=59.7156&interval=3600&ignoreErrors=true",
+							"raw": "{{madiphs_weather_url}}/rest/weatheradapter/openmeteo?longitude=17.3907&latitude=59.7156&interval=3600&ignoreErrors=true",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -478,7 +478,7 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.sendRequest(pm.environment.get(\"wx_url\") + \"/rest/schema/weatherdata\",function(err,res){",
+									"pm.sendRequest(pm.environment.get(\"madiphs_weather_url\") + \"/rest/schema/weatherdata\",function(err,res){",
 									"    pm.test(\"Data is valid WeatherData\", function(){",
 									"        var schema = res.json();",
 									"        pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;",
@@ -519,9 +519,9 @@
 							"urlencoded": []
 						},
 						"url": {
-							"raw": "{{wx_url}}/rest/weatheradapter/openmeteo?longitude=17.3907&latitude=59.7156&interval=86400&ignoreErrors=true",
+							"raw": "{{madiphs_weather_url}}/rest/weatheradapter/openmeteo?longitude=17.3907&latitude=59.7156&interval=86400&ignoreErrors=true",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
@@ -938,7 +938,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate/proxy?endpointURL=http%3A%2F%2Flocalhost:8080%2FMaDiPHSWeatherService%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature&endpointQueryStr=longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate/proxy?endpointQueryStr=longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001&endpointURL={{madiphs_weather_url}}%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature",
 							"host": [
 								"{{madiphs_weather_url}}"
 							],
@@ -970,10 +970,6 @@
 									"disabled": true
 								},
 								{
-									"key": "endpointURL",
-									"value": "http%3A%2F%2Flocalhost:8080%2FMaDiPHSWeatherService%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature"
-								},
-								{
 									"key": "endpointQueryStr",
 									"value": "longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001%2C3099",
 									"disabled": true
@@ -981,6 +977,10 @@
 								{
 									"key": "endpointQueryStr",
 									"value": "longitude%3D14.3711%26latitude%3D67.2828%26altitude%3D70%26parameters%3D1001%2C3001"
+								},
+								{
+									"key": "endpointURL",
+									"value": "{{madiphs_weather_url}}%2Frest%2Ftestdata%2Fweather%2Finterpolation%2Ftemperature"
 								}
 							]
 						}
@@ -1432,9 +1432,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{wx_url}}/rest/amalgamation/amalgamate?longitude=10.961&latitude=56.109&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=3101",
+							"raw": "{{madiphs_weather_url}}/rest/amalgamation/amalgamate?longitude=10.961&latitude=56.109&timeStart=2022-01-01&timeEnd=2022-01-23&interval=3600&parameters=3101",
 							"host": [
-								"{{wx_url}}"
+								"{{madiphs_weather_url}}"
 							],
 							"path": [
 								"rest",
