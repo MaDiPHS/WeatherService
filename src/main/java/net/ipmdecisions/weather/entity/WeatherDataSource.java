@@ -731,14 +731,15 @@ public class WeatherDataSource implements Comparable {
         for(Feature stationFeature: this.getStationsGeometries()) {
             try
             {
-                if(objectMapper.writeValueAsString(stationFeature.getId()).equals(stationId))
-                {
+                String stationFeatureId = objectMapper.writeValueAsString(stationFeature.getId());
+                stationFeatureId = stationFeatureId.replaceAll("^\"|\"$", "");
+                if(stationFeatureId.equals(stationId)) {
                     return stationFeature;
                 }
             }
             catch(JsonProcessingException ex)
             {
-                LOGGER.debug(ex.getMessage());
+                LOGGER.error(ex.getMessage());
                 return null;
             }
         }
