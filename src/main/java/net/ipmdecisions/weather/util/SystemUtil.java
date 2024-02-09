@@ -33,6 +33,6 @@ public class SystemUtil {
 	public static String getWeatherAPIURL()
     {
     	return System.getProperty("net.ipmdecisions.weatherservice.WEATHER_API_URL") != null && ! System.getProperty("net.ipmdecisions.weatherservice.WEATHER_API_URL").isBlank() ? System.getProperty("net.ipmdecisions.weatherservice.WEATHER_API_URL")
-    			: "https://platform.ipmdecisions.net";
+    			: "https://test.madiphs.org/weather";
     }
 }
