@@ -268,4 +268,14 @@ Making the service available in the platform is done by providing IPM Decisions 
     }
   }
 
-```
+### Explaining the metadata
+* The `id` must be unique for that weather data source, and is used throughout the API to refer to this specific source. 
+* `name` and `description` should be as descriptive as possible, they are read and evaluated by humans
+* `public_URL` is a link to the public page of the weather data source
+* `endpoint` is the web service endpoint for the data source. This is where client software sends their requests for weather data
+* `authentication_type` could be `NONE`, `CREDENTIALS` or `BEARER_TOKEN`
+* `needs_data_control`: A value of `true` means that the source may have missing or erroneous data, and QC should be applied
+* `access_type` could be `stations` or `location`
+* `temporal` describes how far back and forward in time the data source can deliver data. The `forecast` property is minimum 0 and is measured in days ahead. `historic` takes ISO dates (YYYY-MM-DD) or `null` (as end) if the station is active
+* `parameters` is a list of weather parameters. An updated list can be found at the endpoint `[API_URL]/rest/parameter`
+* `spatial` is used by the API to locate where the data source is valid/has data. It could either be ISO three-letter country codes, a regular geoJSON polygon(s) or a geoJSON list of stations (such as in the above)
