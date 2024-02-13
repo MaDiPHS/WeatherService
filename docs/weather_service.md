@@ -267,7 +267,7 @@ Making the service available in the platform is done by providing IPM Decisions 
       "url": "https://www.nibio.no/"
     }
   }
-
+``` 
 ### Explaining the metadata
 * The `id` must be unique for that weather data source, and is used throughout the API to refer to this specific source. 
 * `name` and `description` should be as descriptive as possible, they are read and evaluated by humans
