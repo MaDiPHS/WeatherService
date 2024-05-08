@@ -9,6 +9,8 @@ The service provides the system with sufficient information for a client to be a
 
 The source code for this service can be found here: <a href="https://github.com/MaDiPHS/WeatherService" target="_blank">https://github.com/MaDiPHS/WeatherService</a>
 
+A special thanks goes to [Open-Meteo](https://open-meteo.com/) for providing a location based weather data service that covers all of Africa.
+
 There are three main components of the service:
 
 ## 1. The platform's standard weather data format
